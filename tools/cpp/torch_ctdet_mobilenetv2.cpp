@@ -41,21 +41,36 @@ static inline uint64_t getTimeInUs() {
 int main(int argc, const char* argv[])
 {
     if (argc != 3) {
-        MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384.mnn /workspace/centernet/models/2_origin_pred_1.0.jpg\n");
+        // MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384.mnn /workspace/centernet/models/2_origin_pred_1.0.jpg\n");
+        MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384.mnn /workspace/centernet/models/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
         return 0;
     }
     std::string image_name = argv[2];
     std::string model_name = argv[1];
 
-    // int forward = MNN_FORWARD_CPU;
-    int forward = MNN_FORWARD_OPENCL;
+    /* HYPERPARAMETER */
+    const int forward = MNN_FORWARD_OPENCL;
+    const int precision = 2;
+    const int power     = 0;
+    const int memory    = 0;
+    const int threads   = 1;
+    const int INPUT_SIZE = 384;
+    const float scale = 4.0f;
+    const int C = 27;
+    const int H = INPUT_SIZE / scale;
+    const int W = INPUT_SIZE / scale;
+    const int inputImageHeight = 960;
+    const int inputImageWidth = 1280;
+    const float threshold = 0.1f;
+    const cv::Mat transInput = (cv::Mat_<float>(2,3)<<0.3f,-0.f,0.f,0.f,0.3f,48.f);
+    const cv::Mat mean(INPUT_SIZE, INPUT_SIZE, CV_32FC3, cv::Scalar(0.408f, 0.447f, 0.47f));
+    const cv::Mat std(INPUT_SIZE, INPUT_SIZE, CV_32FC3, cv::Scalar(0.289f, 0.274f, 0.278f));
+    const std::string visImg = "./torch_ctdet_mobilenetv2_result.jpg";
+    const char * whTensorID = "685";
+    const char * hmTensorID = "681";
+    const char * regTensorID = "689";
 
-    int precision = 2;
-    int power     = 0;
-    int memory    = 0;
-    int threads   = 1;
-
-    // load and config mnn model
+    /* LOAD MODEL */
     auto revertor = std::unique_ptr<Revert>(new Revert(model_name.c_str()));
     revertor->initialize();
     auto modelBuffer      = revertor->getBuffer();
@@ -70,19 +85,19 @@ int main(int argc, const char* argv[])
     backendConfig.power = (MNN::BackendConfig::PowerMode) power;
     backendConfig.memory = (MNN::BackendConfig::MemoryMode) memory;
     config.backendConfig = &backendConfig;
-    
     auto session = net->createSession(config);
     net->releaseModel();
     
     /* PRE-PROCESS */
     auto tic = getTimeInUs();
-    int INPUT_SIZE = 384;
     cv::Mat raw_image    = cv::imread(image_name.c_str());
+    cv::Size raw_imageSize =  raw_image.size();
+    MNN_CHECK(raw_imageSize.height == inputImageHeight, "input image height error");
+    MNN_CHECK(raw_imageSize.width == inputImageWidth, "input image width error");
     cv::Mat image;
-    cv::resize(raw_image, image, cv::Size(INPUT_SIZE, INPUT_SIZE));
-    image.convertTo(image, CV_32FC3);
-    cv::Mat mean(INPUT_SIZE, INPUT_SIZE, CV_32FC3, cv::Scalar(0.408f, 0.447f, 0.47f));
-    cv::Mat std(INPUT_SIZE, INPUT_SIZE, CV_32FC3, cv::Scalar(0.289f, 0.274f, 0.278f));
+    cv::Mat affinedImage;
+    cv::warpAffine(raw_image, affinedImage, transInput, cv::Size(INPUT_SIZE, INPUT_SIZE), cv::INTER_LINEAR);
+    affinedImage.convertTo(image, CV_32FC3);
     image = (image / 255.0f - mean) / std;
 
     // wrapping input tensor, convert nhwc to nchw    
@@ -98,41 +113,22 @@ int main(int argc, const char* argv[])
     tic = getTimeInUs();
     auto inputTensor  = net->getSessionInput(session, nullptr);
     inputTensor->copyFromHostTensor(nhwc_Tensor);
-
-    // run network
     net->runSession(session);
 
     /* POST-PRECESS */
-    MNN::Tensor *wh  = net->getSessionOutput(session, "685");
+    MNN::Tensor *wh  = net->getSessionOutput(session, whTensorID);
     MNN::Tensor wh_host(wh, wh->getDimensionType());
     wh->copyToHostTensor(&wh_host);
-    // std::cout << "wh length " << wh_host.elementSize() << std::endl;
     auto wh_dataPtr  = wh_host.host<float>();
-    // for (int i=0; i < 20; i++){
-    //     std::cout<< wh_dataPtr[i] << "|" ;
-    // }
-    // std::cout<<std::endl;
 
-    // MNN::Tensor *hm  = net->getSessionOutput(session, "508");
-    // MNN::Tensor hm_host(hm, hm->getDimensionType());
-    // hm->copyToHostTensor(&hm_host);
-    // std::cout << "hm length " << hm_host.elementSize() << std::endl;
-    // auto hm_dataPtr  = hm_host.host<float>();
-
-    MNN::Tensor *hm_sigmoid  = net->getSessionOutput(session, "681");
+    MNN::Tensor *hm_sigmoid  = net->getSessionOutput(session, hmTensorID);
     MNN::Tensor hm_sigmoid_host(hm_sigmoid, hm_sigmoid->getDimensionType());
     hm_sigmoid->copyToHostTensor(&hm_sigmoid_host);
-    // std::cout << "hm_sigmoid length " << hm_sigmoid_host.elementSize() << std::endl;
     auto hm_sigmoid_dataPtr  = hm_sigmoid_host.host<float>();
-    // for (int i=0; i < 20; i++){
-    //     std::cout<< hm_sigmoid_dataPtr[i] << "|" ;
-    // }
-    // std::cout<<std::endl;
 
-    MNN::Tensor *reg  = net->getSessionOutput(session, "689");
+    MNN::Tensor *reg  = net->getSessionOutput(session, regTensorID);
     MNN::Tensor reg_host(reg, reg->getDimensionType());
     reg->copyToHostTensor(&reg_host);
-    // std::cout << "reg length " << reg_host.elementSize() << std::endl;
     auto reg_dataPtr  = reg_host.host<float>();
 
     toc = getTimeInUs();
@@ -141,10 +137,6 @@ int main(int argc, const char* argv[])
     // hm sigmoid, hm maxpool NMS completed before converting
     // to vector
     tic = getTimeInUs();
-    int C = 27;
-    int H = 96;
-    int W = 96;
-    float scale = (float) INPUT_SIZE / H;
     std::vector<float> scores;
     for (int c = 0; c < C; c++){
         for (int h = 0; h < H; h++) {
@@ -162,7 +154,7 @@ int main(int argc, const char* argv[])
     for (int i = 0; i < 100; ++i) {
         float score = q.top().first;
         // filter by threshold
-        if (score > 0.1f){
+        if (score > threshold){
             int idx = q.top().second;
             float classId = floor(idx / (H * W));
             idx = idx - classId * H * W;
@@ -185,7 +177,7 @@ int main(int argc, const char* argv[])
     toc = getTimeInUs();
     printf("post-precess costs: %8.3fms\n", (toc - tic) / 1000.0f);
 
-    // visualize
+    /* VISUALIZATION */
     for (auto visBox: visBoxes) 
     {
         cv::Rect vis_box;
@@ -193,8 +185,8 @@ int main(int argc, const char* argv[])
         vis_box.y = visBox[2];
         vis_box.width  = visBox[1] - visBox[0];
         vis_box.height = visBox[3] - visBox[2];
-        cv::rectangle(raw_image, vis_box, cv::Scalar(0,0,255), 2);
+        cv::rectangle(affinedImage, vis_box, cv::Scalar(0,0,255), 2);
     }
-    cv::imwrite("./torch_ctdet_mobilenetv2_result.jpg", raw_image);
+    cv::imwrite(visImg, affinedImage);
 }
 

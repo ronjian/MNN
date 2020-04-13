@@ -429,7 +429,7 @@ ENDIF()
 ############################ added by jiangrong ##############################
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^arm" OR CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch")
   message("seek opencv for arm " ${CMAKE_SYSTEM_PROCESSOR})
-  find_package( OpenCV HINTS "/workspace/MNN/roboToolChain/gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabi/arm-linux-gnueabi/libc/usr/share/OpenCV/" )
+  find_package( OpenCV HINTS "/workspace/roboToolChain/gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabi/arm-linux-gnueabi/libc/usr/share/OpenCV/" )
 else()
   message("seek opencv for x86 " ${CMAKE_SYSTEM_PROCESSOR})
   find_package( OpenCV REQUIRED )
