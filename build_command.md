@@ -15,8 +15,8 @@ cmake .. -DMNN_BUILD_DEMO=on \
  -DMNN_BUILD_QUANTOOLS=on \
  -DMNN_BUILD_CONVERTER=on \
  -DMNN_SUPPORT_TFLITE_QUAN=on \
- -DMNN_DEBUG_MEMORY=on \
- -DMNN_DEBUG_TENSOR_SIZE=on \
+ -DMNN_DEBUG_MEMORY=off \
+ -DMNN_DEBUG_TENSOR_SIZE=off \
  -DMNN_BUILD_BENCHMARK=on \
  -DMNN_OPENCL=off \
  -DMNN_SEP_BUILD=false;
@@ -38,4 +38,13 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE=../arm-linux-gnueabi.cmake \
 -DMNN_OPENCL=true \
 -DMNN_BUILD_TOOLS=on
 make -j$(nproc)
+```
+
+convert model
+```shell
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile pascal_mobilenetv2_384.onnx \
+--MNNModel pascal_mobilenetv2_384.mnn \
+--bizCode MNN \
+--debug true
 ```
