@@ -49,3 +49,9 @@ if (MSVC OR WIN32)
         target_compile_options(${TARGET} PRIVATE "/wd4244" "/wd4305" "/wd4129")
     endforeach()
 endif()
+
+################### add by jiangrong ###################
+add_executable(torch_ctdet_mobilenetv2.out ${CMAKE_CURRENT_LIST_DIR}/torch_ctdet_mobilenetv2.cpp ${CMAKE_CURRENT_LIST_DIR}/revertMNNModel.cpp)
+target_link_libraries(torch_ctdet_mobilenetv2.out ${MNN_DEPS})
+list(APPEND MNN_CPP_TOOLS torch_ctdet_mobilenetv2.out)
+################### end adding #########################
