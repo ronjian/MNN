@@ -2,8 +2,6 @@
 
 [中文版本](README_CN.md)
 
-change1
-
 [![Build Status](https://travis-ci.com/alibaba/MNN.svg?branch=master)](https://travis-ci.com/alibaba/MNN)
 
 ## Intro
