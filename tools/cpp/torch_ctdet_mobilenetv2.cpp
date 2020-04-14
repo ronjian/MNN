@@ -1,27 +1,28 @@
 #include "core/Backend.hpp"
+#include "revertMNNModel.hpp"
 #include <MNN/Interpreter.hpp>
 #include <MNN/MNNDefine.h>
 #include <MNN/Tensor.hpp>
-#include "revertMNNModel.hpp"
 
-#include <opencv2/opencv.hpp>
 #include <iostream>
-#include <stdio.h>
-#include <math.h>
-#if defined(_MSC_VER)
-#include <Windows.h>
-#undef min
-#undef max
-#else
 #include <sys/time.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <dirent.h>
-#endif
-#include <queue>
 #include <vector>
 #include <algorithm>
 #include <math.h>
+
+#include <opencv2/opencv.hpp>
+
+using namespace std;
+
+struct ObjInfo {
+	float x1;
+	float y1;
+	float x2;
+	float y2;
+	float score;
+	float area;
+	int label;
+};
 
 static inline uint64_t getTimeInUs() {
     uint64_t time;
@@ -39,16 +40,6 @@ static inline uint64_t getTimeInUs() {
 #endif
     return time;
 }
-
-struct ObjInfo {
-	float x1;
-	float y1;
-	float x2;
-	float y2;
-	float score;
-	float area;
-	int label;
-};
 
 void _nms(std::vector<ObjInfo>& input, std::vector<ObjInfo>& output, float nmsthreshold,std::string type) {
 	if (input.empty()) {
@@ -205,85 +196,45 @@ int main(int argc, const char* argv[])
     printf("inference costs: %8.3fms\n", (toc - tic) / 1000.0f);
 
     /* POST-PRECESS */
-    // hm sigmoid, hm maxpool NMS completed before converting
-    // to vector
     tic = getTimeInUs();
-    std::vector<float> scores;
+    // decode
+    std::vector<ObjInfo> objs_tmp;
+    int idx = 0;
     for (int c = 0; c < C; c++){
         for (int h = 0; h < H; h++) {
             for (int w = 0; w < W; w++) {
-                scores.push_back(hm_dataPtr[c * H * W + h * W + w]);
+                float score = hm_dataPtr[c * H * W + h * W + w];
+                if (score > scoreThreshold) {
+                    ObjInfo objbox;
+                    objbox.label = floor(idx / (H * W));
+                    objbox.score = score;
+                    int refIdx = idx - objbox.label * H * W;
+                    float centerX = refIdx % W;
+                    float centerY = floor(refIdx / W);
+                    float xReg = reg_dataPtr[refIdx];
+                    float yReg = reg_dataPtr[refIdx + H * W];
+                    float width = wh_dataPtr[refIdx];
+                    float height = wh_dataPtr[refIdx + H * W];
+                    objbox.x1 = ((centerX + xReg) - width / 2.0f) * scale;
+                    objbox.y1 = ((centerY + yReg) - height / 2.0f) * scale;
+                    objbox.x2 = ((centerX + xReg) + width / 2.0f) * scale;
+                    objbox.y2 = ((centerY + yReg) + height / 2.0f) * scale;
+                    std::cout << "score: " << objbox.score << ", label: " << objbox.label << ", x1: " << objbox.x1 << ", x2: " << objbox.x2 << ", y1: " << objbox.y1 << ", y2: " << objbox.y2 << std::endl;
+                    objbox.area=(objbox.x2 - objbox.x1) * (objbox.y2 - objbox.y1);
+                    objs_tmp.push_back(objbox);
+                }
+                idx++;
             }
         }
     }
     // NMS
-    std::vector<ObjInfo> objs_tmp;
-    for (int i = 0; i < scores.size(); ++i) {
-        float score = scores[i];
-        if (score > scoreThreshold){
-            ObjInfo objbox;
-            objbox.label = floor(i / (H * W));
-            objbox.score = score;
-            int idx = i - objbox.label * H * W;
-            float centerX = idx % W;
-            float centerY = floor(idx / W);
-            float xReg = reg_dataPtr[idx];
-            float yReg = reg_dataPtr[idx + H * W];
-            float width = wh_dataPtr[idx];
-            float height = wh_dataPtr[idx + H * W];
-            objbox.x1 = ((centerX + xReg) - width / 2.0f) * scale;
-            objbox.y1 = ((centerY + yReg) - height / 2.0f) * scale;
-            objbox.x2 = ((centerX + xReg) + width / 2.0f) * scale;
-            objbox.y2 = ((centerY + yReg) + height / 2.0f) * scale;
-            std::cout << "score: " << objbox.score << ",label: " << objbox.label << ",x1: " << objbox.x1 << ",x2: " << objbox.x2 << ",y1: " << objbox.y1 << ",y2: " << objbox.y2 << std::endl;
-            objbox.area=(objbox.x2 - objbox.x1) * (objbox.y2 - objbox.y1);
-            objs_tmp.push_back(objbox);
-        }
-    }
     std::vector<ObjInfo> objs;
     _nms(objs_tmp, objs, iouThreshold, "NMS_UNION");
-    
-    // std::priority_queue<std::pair<float, int> > q;
-    // for (int i = 0; i < scores.size(); ++i) {
-    //     q.push(std::pair<float, int>(scores[i], i));
-    // }
-    // std::vector<std::vector<int> > visBoxes;
-    // for (int i = 0; i < 100; ++i) {
-    //     float score = q.top().first;
-    //     // filter by scoreThreshold
-    //     if (score > scoreThreshold){
-    //         int idx = q.top().second;
-    //         float classId = floor(idx / (H * W));
-    //         idx = idx - classId * H * W;
-    //         float centerX = idx % W;
-    //         float centerY = floor(idx / W);
-    //         float xReg = reg_dataPtr[idx];
-    //         float yReg = reg_dataPtr[idx + H * W];
-    //         float width = wh_dataPtr[idx];
-    //         float height = wh_dataPtr[idx + H * W];
-    //         int x0 = (int) ((centerX + xReg) - width / 2.0f) * scale;
-    //         int x1 = (int) ((centerX + xReg) + width / 2.0f) * scale;
-    //         int y0 = (int) ((centerY + yReg) - height / 2.0f) * scale;
-    //         int y1 = (int) ((centerY + yReg) + height / 2.0f) * scale;
-    //         visBoxes.push_back({x0, x1, y0, y1});
-    //         std::cout<< " idx:"<< idx << " classid:"<< classId << " score:" << score 
-    //             <<" x0:"<< x0 << " x1:" << x1 << " y0:" << y0 << " y1:" << y1 << std::endl;
-    //     }
-    //     q.pop();
-    // }
+
     toc = getTimeInUs();
     printf("post-precess costs: %8.3fms\n", (toc - tic) / 1000.0f);
 
     /* VISUALIZATION */
-    // for (auto visBox: visBoxes) 
-    // {
-    //     cv::Rect vis_box;
-    //     vis_box.x = visBox[0];
-    //     vis_box.y = visBox[2];
-    //     vis_box.width  = visBox[1] - visBox[0];
-    //     vis_box.height = visBox[3] - visBox[2];
-    //     cv::rectangle(affinedImage, vis_box, cv::Scalar(0,0,255), 2);
-    // }
     for (auto obj: objs) {
         cv::Rect vis_box;
         vis_box.x = obj.x1;
