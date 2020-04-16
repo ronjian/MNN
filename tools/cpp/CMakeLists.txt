@@ -51,7 +51,11 @@ if (MSVC OR WIN32)
 endif()
 
 ################### add by jiangrong ###################
-add_executable(torch_ctdet_mobilenetv2.out ${CMAKE_CURRENT_LIST_DIR}/torch_ctdet_mobilenetv2.cpp ${CMAKE_CURRENT_LIST_DIR}/revertMNNModel.cpp)
-target_link_libraries(torch_ctdet_mobilenetv2.out ${MNN_DEPS})
-list(APPEND MNN_CPP_TOOLS torch_ctdet_mobilenetv2.out)
+add_executable(NeiceTest.out ${CMAKE_CURRENT_LIST_DIR}/NeiceTest.cpp ${CMAKE_CURRENT_LIST_DIR}/revertMNNModel.cpp ${CMAKE_CURRENT_LIST_DIR}/torch_ctdet_mobilenetv2.cpp)
+target_link_libraries(NeiceTest.out ${MNN_DEPS})
+list(APPEND MNN_CPP_TOOLS NeiceTest.out)
+
+# add_executable(torch_ctdet_mobilenetv2.out ${CMAKE_CURRENT_LIST_DIR}/torch_ctdet_mobilenetv2.cpp ${CMAKE_CURRENT_LIST_DIR}/revertMNNModel.cpp)
+# target_link_libraries(torch_ctdet_mobilenetv2.out ${MNN_DEPS})
+# list(APPEND MNN_CPP_TOOLS torch_ctdet_mobilenetv2.out)
 ################### end adding #########################

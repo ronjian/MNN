@@ -15,8 +15,6 @@
 
 #include "torch_ctdet_mobilenetv2.hpp"
 
-using namespace std;
-
 
 static inline uint64_t getTimeInUs() {
     uint64_t time;
@@ -44,6 +42,8 @@ Detector::~Detector()
 }
 
 int Detector::nms(std::vector<ObjInfo>& input, std::vector<ObjInfo>& output, float nmsthreshold, int type) {
+    // std::cout << "input size " << input.size() << std::endl;
+    output.clear();
 	if (input.empty()) {
 		return 1;
 	}
@@ -52,6 +52,7 @@ int Detector::nms(std::vector<ObjInfo>& input, std::vector<ObjInfo>& output, flo
 		{
 			return a.score < b.score;
 		});
+    // std::cout << "complete sort" << std::endl;
 	float IOU = 0;
 	float maxX = 0;
 	float maxY = 0;
@@ -65,6 +66,7 @@ int Detector::nms(std::vector<ObjInfo>& input, std::vector<ObjInfo>& output, flo
 	for (int i = 0; i < num_boxes; ++i) {
 		vScores.insert(std::pair<float, int>(input[i].score, i));
 	}
+    // std::cout << "before loop" << std::endl;
 	while (vScores.size() > 0) {
 		int last = vScores.rbegin()->second;
 		vPick[nPick] = last;
@@ -76,8 +78,8 @@ int Detector::nms(std::vector<ObjInfo>& input, std::vector<ObjInfo>& output, flo
 			minX = std::min(input.at(it_idx).x2, input.at(last).x2);
 			minY = std::min(input.at(it_idx).y2, input.at(last).y2);
 			//maxX1 and maxY1 reuse 
-			maxX = ((minX - maxX + 1) > 0) ? (minX - maxX + 1) : 0;
-			maxY = ((minY - maxY + 1) > 0) ? (minY - maxY + 1) : 0;
+			maxX = ((minX - maxX + 0.001) > 0) ? (minX - maxX + 0.001) : 0;
+			maxY = ((minY - maxY + 0.001) > 0) ? (minY - maxY + 0.001) : 0;
 			//IOU reuse for the area of two bbox
 			IOU = maxX * maxY;
 			if (type == NMS_UNION)
@@ -93,8 +95,10 @@ int Detector::nms(std::vector<ObjInfo>& input, std::vector<ObjInfo>& output, flo
 			}
 		}
 	}
+    // std::cout << "after loop" << std::endl;
 	vPick.resize(nPick);
 	output.resize(nPick);
+    // std::cout << "after resize" << std::endl;
 	for (int i = 0; i < nPick; i++) {
 		output[i] = input[vPick[i]];
 	}
@@ -214,13 +218,12 @@ int Detector::detect(std::string image_path) {
     printf("decode costs: %8.3fms\n", (toc - tic) / 1000.0f);
 
     tic = getTimeInUs();
-    std::vector<ObjInfo> objs;
-    nms(objs_tmp, objs, iouThreshold, NMS_UNION);
+    nms(objs_tmp, dets, iouThreshold, NMS_UNION);
     toc = getTimeInUs();
     printf("nms costs: %8.3fms\n", (toc - tic) / 1000.0f);
 
     /* VISUALIZATION */
-    for (auto obj: objs) {
+    for (auto obj: dets) {
         cv::Rect vis_box;
         vis_box.x = obj.x1;
         vis_box.y = obj.y1;
@@ -234,18 +237,20 @@ int Detector::detect(std::string image_path) {
 }
 
 
-int main(int argc, const char* argv[])
-{
-    if (argc != 3) {
-        // MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384.mnn /workspace/centernet/models/2_origin_pred_1.0.jpg\n");
-        MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid.mnn /workspace/centernet/models/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
-        return 0;
-    }
-    std::string image_name = argv[2];
-    std::string model_name = argv[1];
-    Detector detector;
-    detector.init(model_name);
-    detector.detect(image_name);
-
-}
+// int main(int argc, const char* argv[])
+// {
+//     if (argc != 3) {
+//         // MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384.mnn /workspace/centernet/models/2_origin_pred_1.0.jpg\n");
+//         // MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid.mnn /workspace/centernet/models/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
+//         MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid.mnn /workspace/centernet/data/voc/images/StereoVision_L_20465247_22_0_0_32316_D_Wire_158_-764.jpeg\n");
+        
+//         return 0;
+//     }
+//     std::string image_name = argv[2];
+//     std::string model_name = argv[1];
+//     Detector detector;
+//     detector.init(model_name);
+//     detector.detect(image_name);
+//     return 0;
+// }
 
