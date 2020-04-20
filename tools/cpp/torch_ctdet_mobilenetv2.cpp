@@ -186,7 +186,10 @@ int Detector::preProcess(std::string image_path) {
     cv::Mat image;
     affinedImage.convertTo(image, CV_32FC3);
     image = (image / 255.0f - mean) / std;
+    auto tic = getTimeInUs();
     ::memcpy(nhwc_Tensor->host<float>(), image.data, nhwc_Tensor->size());
+    auto toc = getTimeInUs();
+    printf("copy data costs: %8.3fms\n", (toc - tic) / 1000.0f);
     return 0;
 }
 
