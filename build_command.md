@@ -47,4 +47,13 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 --MNNModel pascal_mobilenetv2_384.mnn \
 --bizCode MNN \
 --debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile pascal_mobilenetv2_384_sigmoid_pool.onnx \
+--MNNModel pascal_mobilenetv2_384_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
 ```
+
+
+

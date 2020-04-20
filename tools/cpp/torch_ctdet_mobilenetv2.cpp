@@ -125,7 +125,8 @@ int Detector::init(std::string model_path)
     net->releaseModel();
     nhwc_Tensor = MNN::Tensor::create<float>({1, INPUT_SIZE, INPUT_SIZE, 3}, NULL, MNN::Tensor::TENSORFLOW);
     wh  = net->getSessionOutput(session, whTensorID);
-    hm_sigmoid  = net->getSessionOutput(session, hmTensorID);
+    hm  = net->getSessionOutput(session, hmTensorID);
+    hmpool  = net->getSessionOutput(session, hmpoolTensorID);
     reg  = net->getSessionOutput(session, regTensorID);
     return 0;
 }
@@ -135,9 +136,13 @@ int Detector::decode(std::vector<ObjInfo>& objs_tmp) {
     wh->copyToHostTensor(&wh_host);
     auto wh_dataPtr  = wh_host.host<float>();
 
-    MNN::Tensor hm_host(hm_sigmoid, hm_sigmoid->getDimensionType());
-    hm_sigmoid->copyToHostTensor(&hm_host);
+    MNN::Tensor hm_host(hm, hm->getDimensionType());
+    hm->copyToHostTensor(&hm_host);
     auto hm_dataPtr  = hm_host.host<float>();
+
+    MNN::Tensor hmpool_host(hmpool, hmpool->getDimensionType());
+    hmpool->copyToHostTensor(&hmpool_host);
+    auto hmpool_dataPtr  = hmpool_host.host<float>();
 
     MNN::Tensor reg_host(reg, reg->getDimensionType());
     reg->copyToHostTensor(&reg_host);
@@ -148,7 +153,7 @@ int Detector::decode(std::vector<ObjInfo>& objs_tmp) {
         for (int h = 0; h < H; h++) {
             for (int w = 0; w < W; w++) {
                 float score = hm_dataPtr[c * H * W + h * W + w];
-                if (score > scoreThreshold) {
+                if (score > scoreThreshold && score == hmpool_dataPtr[c * H * W + h * W + w]) {
                     ObjInfo objbox;
                     objbox.label = floor(idx / (H * W));
                     objbox.score = score;
@@ -220,10 +225,12 @@ int Detector::detect(std::string image_path) {
     toc = getTimeInUs();
     printf("decode costs: %8.3fms\n", (toc - tic) / 1000.0f);
 
-    tic = getTimeInUs();
-    nms(objs_tmp, dets, iouThreshold, NMS_UNION);
-    toc = getTimeInUs();
-    printf("nms costs: %8.3fms\n", (toc - tic) / 1000.0f);
+    // tic = getTimeInUs();
+    // nms(objs_tmp, dets, iouThreshold, NMS_UNION);
+    // toc = getTimeInUs();
+    // printf("nms costs: %8.3fms\n", (toc - tic) / 1000.0f);
+    dets = objs_tmp;
+    
 
     /* VISUALIZATION */
     for (auto obj: dets) {
@@ -243,9 +250,8 @@ int Detector::detect(std::string image_path) {
 // int main(int argc, const char* argv[])
 // {
 //     if (argc != 3) {
-//         // MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384.mnn /workspace/centernet/models/2_origin_pred_1.0.jpg\n");
 //         // MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid.mnn /workspace/centernet/models/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
-//         MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid.mnn /workspace/centernet/data/voc/images/StereoVision_L_20465247_22_0_0_32316_D_Wire_158_-764.jpeg\n");
+//         MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid_pool.mnn /workspace/centernet/models/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
         
 //         return 0;
 //     }

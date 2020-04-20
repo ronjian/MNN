@@ -26,8 +26,8 @@ namespace patch
 int main(int argc, const char* argv[])
 {
     if (argc != 5) {
-        MNN_PRINT("Usage: ./NeiceTest.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid.mnn /workspace/centernet/data/voc/annotations/pascal_neice_final.json /workspace/centernet/data/voc/images/ /workspace/Object-Detection-Evaluation/neice/result-from-mnn.txt\n");
-        //8053 useage: ./NeiceTest.out /data/jiangrong0311/models/pascal_mobilenetv2_384_sigmoid.mnn /data/jiangrong0311/models/pascal_neice_final.json /data/jiangrong0311/images/ /data/jiangrong0311/models/result-from-mnn.txt
+        MNN_PRINT("Usage: ./NeiceTest.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid_pool.mnn /workspace/centernet/data/voc/annotations/pascal_neice_final.json /workspace/centernet/data/voc/images/ /workspace/Object-Detection-Evaluation/neice/result-from-mnn.txt\n");
+        //8053 useage: ./NeiceTest.out /data/jiangrong0311/models/pascal_mobilenetv2_384_sigmoid_pool.mnn /data/jiangrong0311/models/pascal_neice_final.json /data/jiangrong0311/images/ /data/jiangrong0311/models/result-from-mnn.txt
         return 0;
     }
     string modelPath = argv[1];

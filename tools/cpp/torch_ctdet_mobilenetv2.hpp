@@ -27,9 +27,10 @@ public:
     const int memory    = 0;
     const int threads   = 4;
     const int INPUT_SIZE = 384;
-    const char * whTensorID = "681";
-    const char * hmTensorID = "677";
-    const char * regTensorID = "685";
+    const char * hmTensorID = "hm_sigmoid";
+	const char * hmpoolTensorID = "hm_pool";
+	const char * whTensorID = "wh";
+    const char * regTensorID = "reg";
     const double scale = 4.0f;
     const int C = 27;
     const int H = INPUT_SIZE / scale;
@@ -54,7 +55,8 @@ private:
 	MNN::Session * session;
     MNN::Tensor * nhwc_Tensor;
 	MNN::Tensor * wh;
-	MNN::Tensor * hm_sigmoid;
+	MNN::Tensor * hm;
+	MNN::Tensor * hmpool;
 	MNN::Tensor * reg;
 	cv::Mat affinedImage;
 	
