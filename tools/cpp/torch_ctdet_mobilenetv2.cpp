@@ -41,6 +41,107 @@ Detector::~Detector()
 {
 }
 
+int Detector::init(std::string model_path)
+{
+    auto revertor = std::unique_ptr<Revert>(new Revert(model_path.c_str()));
+    revertor->initialize();
+    auto modelBuffer      = revertor->getBuffer();
+    const auto bufferSize = revertor->getBufferSize();
+    net = std::shared_ptr<MNN::Interpreter>(MNN::Interpreter::createFromBuffer(modelBuffer, bufferSize));
+    revertor.reset();
+    MNN::ScheduleConfig config;
+    config.numThread = threads;
+    config.type      = static_cast<MNNForwardType>(forward);
+    MNN::BackendConfig backendConfig;
+    backendConfig.precision = (MNN::BackendConfig::PrecisionMode) precision;
+    backendConfig.power = (MNN::BackendConfig::PowerMode) power;
+    backendConfig.memory = (MNN::BackendConfig::MemoryMode) memory;
+    config.backendConfig = &backendConfig;
+    config.saveTensors = {hmTensorID};
+    session = net->createSession(config);
+    net->releaseModel();
+    nhwc_Tensor = MNN::Tensor::create<float>({1, INPUT_SIZE, INPUT_SIZE, 3}, NULL, MNN::Tensor::TENSORFLOW);
+    wh  = net->getSessionOutput(session, whTensorID);
+    hm  = net->getSessionOutput(session, hmTensorID);
+    hmpool  = net->getSessionOutput(session, hmpoolTensorID);
+    reg  = net->getSessionOutput(session, regTensorID);
+    return 0;
+}
+
+int Detector::preProcess(std::string image_path) {
+    /* PRE-PROCESS */
+    const cv::Mat mean(INPUT_SIZE, INPUT_SIZE, CV_32FC3, meanValue);
+    const cv::Mat std(INPUT_SIZE, INPUT_SIZE, CV_32FC3, stdValue);
+    cv::Mat raw_image    = cv::imread(image_path);
+    cv::Size raw_imageSize =  raw_image.size();
+    MNN_CHECK(raw_imageSize.height == inputImageHeight, "input image height error");
+    MNN_CHECK(raw_imageSize.width == inputImageWidth, "input image width error");
+    cv::warpAffine(raw_image, affinedImage, transInput, cv::Size(INPUT_SIZE, INPUT_SIZE), cv::INTER_LINEAR);
+    cv::Mat image;
+    affinedImage.convertTo(image, CV_32FC3);
+    image = (image / 255.0f - mean) / std;
+    auto tic = getTimeInUs();
+    ::memcpy(nhwc_Tensor->host<float>(), image.data, nhwc_Tensor->size());
+    auto toc = getTimeInUs();
+    printf("copy data costs: %8.3fms\n", (toc - tic) / 1000.0f);
+    return 0;
+}
+
+int Detector::inference() {
+    auto inputTensor  = net->getSessionInput(session, nullptr);
+    inputTensor->copyFromHostTensor(nhwc_Tensor);
+    net->runSession(session);
+    return 0;
+}
+
+int Detector::decode(std::vector<ObjInfo>& objs_tmp) {
+    MNN::Tensor wh_host(wh, wh->getDimensionType());
+    wh->copyToHostTensor(&wh_host);
+    auto wh_dataPtr  = wh_host.host<float>();
+
+    MNN::Tensor hm_host(hm, hm->getDimensionType());
+    hm->copyToHostTensor(&hm_host);
+    auto hm_dataPtr  = hm_host.host<float>();
+
+    MNN::Tensor hmpool_host(hmpool, hmpool->getDimensionType());
+    hmpool->copyToHostTensor(&hmpool_host);
+    auto hmpool_dataPtr  = hmpool_host.host<float>();
+
+    MNN::Tensor reg_host(reg, reg->getDimensionType());
+    reg->copyToHostTensor(&reg_host);
+    auto reg_dataPtr  = reg_host.host<float>();
+    
+    int idx = 0;
+    for (int c = 0; c < C; c++){
+        for (int h = 0; h < H; h++) {
+            for (int w = 0; w < W; w++) {
+                float score = hm_dataPtr[c * H * W + h * W + w];
+                if (score > scoreThreshold && score == hmpool_dataPtr[c * H * W + h * W + w]) {
+                    ObjInfo objbox;
+                    objbox.label = floor(idx / (H * W));
+                    objbox.score = score;
+                    int refIdx = idx - objbox.label * H * W;
+                    float centerX = refIdx % W;
+                    float centerY = floor(refIdx / W);
+                    float xReg = reg_dataPtr[refIdx];
+                    float yReg = reg_dataPtr[refIdx + H * W];
+                    float width = wh_dataPtr[refIdx];
+                    float height = wh_dataPtr[refIdx + H * W];
+                    objbox.x1 = ((centerX + xReg) - width / 2.0f) * scale;
+                    objbox.y1 = ((centerY + yReg) - height / 2.0f) * scale;
+                    objbox.x2 = ((centerX + xReg) + width / 2.0f) * scale;
+                    objbox.y2 = ((centerY + yReg) + height / 2.0f) * scale;
+                    // std::cout << "score: " << objbox.score << ", label: " << objbox.label << ", x1: " << objbox.x1 << ", x2: " << objbox.x2 << ", y1: " << objbox.y1 << ", y2: " << objbox.y2 << std::endl;
+                    objbox.area=(objbox.x2 - objbox.x1) * (objbox.y2 - objbox.y1);
+                    objs_tmp.push_back(objbox);
+                }
+                idx++;
+            }
+        }
+    }
+    return 0;
+}
+
 int Detector::nms(std::vector<ObjInfo>& input, std::vector<ObjInfo>& output, float nmsthreshold, int type) {
     // std::cout << "input size " << input.size() << std::endl;
     output.clear();
@@ -105,106 +206,6 @@ int Detector::nms(std::vector<ObjInfo>& input, std::vector<ObjInfo>& output, flo
     return 0;
 }
 
-int Detector::init(std::string model_path)
-{
-    auto revertor = std::unique_ptr<Revert>(new Revert(model_path.c_str()));
-    revertor->initialize();
-    auto modelBuffer      = revertor->getBuffer();
-    const auto bufferSize = revertor->getBufferSize();
-    net = std::shared_ptr<MNN::Interpreter>(MNN::Interpreter::createFromBuffer(modelBuffer, bufferSize));
-    revertor.reset();
-    MNN::ScheduleConfig config;
-    config.numThread = threads;
-    config.type      = static_cast<MNNForwardType>(forward);
-    MNN::BackendConfig backendConfig;
-    backendConfig.precision = (MNN::BackendConfig::PrecisionMode) precision;
-    backendConfig.power = (MNN::BackendConfig::PowerMode) power;
-    backendConfig.memory = (MNN::BackendConfig::MemoryMode) memory;
-    config.backendConfig = &backendConfig;
-    session = net->createSession(config);
-    net->releaseModel();
-    nhwc_Tensor = MNN::Tensor::create<float>({1, INPUT_SIZE, INPUT_SIZE, 3}, NULL, MNN::Tensor::TENSORFLOW);
-    wh  = net->getSessionOutput(session, whTensorID);
-    hm  = net->getSessionOutput(session, hmTensorID);
-    hmpool  = net->getSessionOutput(session, hmpoolTensorID);
-    reg  = net->getSessionOutput(session, regTensorID);
-    return 0;
-}
-
-int Detector::decode(std::vector<ObjInfo>& objs_tmp) {
-    MNN::Tensor wh_host(wh, wh->getDimensionType());
-    wh->copyToHostTensor(&wh_host);
-    auto wh_dataPtr  = wh_host.host<float>();
-
-    MNN::Tensor hm_host(hm, hm->getDimensionType());
-    hm->copyToHostTensor(&hm_host);
-    auto hm_dataPtr  = hm_host.host<float>();
-
-    MNN::Tensor hmpool_host(hmpool, hmpool->getDimensionType());
-    hmpool->copyToHostTensor(&hmpool_host);
-    auto hmpool_dataPtr  = hmpool_host.host<float>();
-
-    MNN::Tensor reg_host(reg, reg->getDimensionType());
-    reg->copyToHostTensor(&reg_host);
-    auto reg_dataPtr  = reg_host.host<float>();
-    
-    int idx = 0;
-    for (int c = 0; c < C; c++){
-        for (int h = 0; h < H; h++) {
-            for (int w = 0; w < W; w++) {
-                float score = hm_dataPtr[c * H * W + h * W + w];
-                if (score > scoreThreshold && score == hmpool_dataPtr[c * H * W + h * W + w]) {
-                    ObjInfo objbox;
-                    objbox.label = floor(idx / (H * W));
-                    objbox.score = score;
-                    int refIdx = idx - objbox.label * H * W;
-                    float centerX = refIdx % W;
-                    float centerY = floor(refIdx / W);
-                    float xReg = reg_dataPtr[refIdx];
-                    float yReg = reg_dataPtr[refIdx + H * W];
-                    float width = wh_dataPtr[refIdx];
-                    float height = wh_dataPtr[refIdx + H * W];
-                    objbox.x1 = ((centerX + xReg) - width / 2.0f) * scale;
-                    objbox.y1 = ((centerY + yReg) - height / 2.0f) * scale;
-                    objbox.x2 = ((centerX + xReg) + width / 2.0f) * scale;
-                    objbox.y2 = ((centerY + yReg) + height / 2.0f) * scale;
-                    // std::cout << "score: " << objbox.score << ", label: " << objbox.label << ", x1: " << objbox.x1 << ", x2: " << objbox.x2 << ", y1: " << objbox.y1 << ", y2: " << objbox.y2 << std::endl;
-                    objbox.area=(objbox.x2 - objbox.x1) * (objbox.y2 - objbox.y1);
-                    objs_tmp.push_back(objbox);
-                }
-                idx++;
-            }
-        }
-    }
-    return 0;
-}
-
-int Detector::preProcess(std::string image_path) {
-    /* PRE-PROCESS */
-    const cv::Mat mean(INPUT_SIZE, INPUT_SIZE, CV_32FC3, meanValue);
-    const cv::Mat std(INPUT_SIZE, INPUT_SIZE, CV_32FC3, stdValue);
-    cv::Mat raw_image    = cv::imread(image_path);
-    cv::Size raw_imageSize =  raw_image.size();
-    MNN_CHECK(raw_imageSize.height == inputImageHeight, "input image height error");
-    MNN_CHECK(raw_imageSize.width == inputImageWidth, "input image width error");
-    cv::warpAffine(raw_image, affinedImage, transInput, cv::Size(INPUT_SIZE, INPUT_SIZE), cv::INTER_LINEAR);
-    cv::Mat image;
-    affinedImage.convertTo(image, CV_32FC3);
-    image = (image / 255.0f - mean) / std;
-    auto tic = getTimeInUs();
-    ::memcpy(nhwc_Tensor->host<float>(), image.data, nhwc_Tensor->size());
-    auto toc = getTimeInUs();
-    printf("copy data costs: %8.3fms\n", (toc - tic) / 1000.0f);
-    return 0;
-}
-
-int Detector::inference() {
-    auto inputTensor  = net->getSessionInput(session, nullptr);
-    inputTensor->copyFromHostTensor(nhwc_Tensor);
-    net->runSession(session);
-    return 0;
-}
-
 int Detector::detect(std::string image_path) {
     /* PRE-PROCESS */
     auto tic = getTimeInUs();
@@ -233,15 +234,15 @@ int Detector::detect(std::string image_path) {
     
 
     /* VISUALIZATION */
-    for (auto obj: dets) {
-        cv::Rect vis_box;
-        vis_box.x = obj.x1;
-        vis_box.y = obj.y1;
-        vis_box.width  = obj.x2 - obj.x1;
-        vis_box.height = obj.y2 - obj.y1;
-        cv::rectangle(affinedImage, vis_box, cv::Scalar(0,0,255), 2);
-    }
-    cv::imwrite(visImg, affinedImage);
+    // for (auto obj: dets) {
+    //     cv::Rect vis_box;
+    //     vis_box.x = obj.x1;
+    //     vis_box.y = obj.y1;
+    //     vis_box.width  = obj.x2 - obj.x1;
+    //     vis_box.height = obj.y2 - obj.y1;
+    //     cv::rectangle(affinedImage, vis_box, cv::Scalar(0,0,255), 2);
+    // }
+    // cv::imwrite(visImg, affinedImage);
 
     return 0;
 }

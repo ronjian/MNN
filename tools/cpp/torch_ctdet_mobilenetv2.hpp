@@ -27,7 +27,7 @@ public:
     const int memory    = 0;
     const int threads   = 4;
     const int INPUT_SIZE = 384;
-    const char * hmTensorID = "hm_sigmoid";
+    const char * hmTensorID = "hm";
 	const char * hmpoolTensorID = "hm_pool";
 	const char * whTensorID = "wh";
     const char * regTensorID = "reg";
