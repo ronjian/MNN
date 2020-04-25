@@ -53,6 +53,103 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 --MNNModel pascal_mobilenetv2_384_sigmoid_pool.mnn \
 --bizCode MNN \
 --debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv3-large-b4e262ea-sim.onnx \
+--MNNModel mobilenetv3-large-b4e262ea-sim.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv2.onnx \
+--MNNModel mobilenetv2.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv3_384_sigmoid_pool.onnx \
+--MNNModel mobilenetv3_384_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ghostnet-sim.onnx \
+--MNNModel ghostnet.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ghostnet_384_sigmoid_pool.onnx \
+--MNNModel ghostnet_384_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv3small_384_sigmoid_pool.onnx \
+--MNNModel mobilenetv3small_384_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/quantized.out \
+mobilenetv3small_384_sigmoid_pool.mnn \
+mobilenetv3small_384_sigmoid_pool_quant.mnn \
+ctdet_coco_dlav0_1x_quant.json
+
+
+$MNN_HOME/build/quantized.out \
+ghostnet.mnn \
+ghostnet_quant.mnn \
+/workspace/centernet/models/ctdet_coco_dlav0_1x_quant.json
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv3small_224_sigmoid_pool.onnx \
+--MNNModel mobilenetv3small_224_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv3_224_sigmoid_pool.onnx \
+--MNNModel mobilenetv3_224_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv3_300_sigmoid_pool.onnx \
+--MNNModel mobilenetv3_300_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv3small_288_sigmoid_pool.onnx \
+--MNNModel mobilenetv3small_288_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv3large_up256_288_sigmoid_pool.onnx \
+--MNNModel mobilenetv3large_up256_288_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv3large_up256_320_sigmoid_pool.onnx \
+--MNNModel mobilenetv3large_up256_320_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv3large_up128_320_sigmoid_pool.onnx \
+--MNNModel mobilenetv3large_up128_320_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv3large_upmix_320_sigmoid_pool.onnx \
+--MNNModel mobilenetv3large_upmix_320_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
 ```
 
 
