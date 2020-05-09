@@ -10,7 +10,7 @@ build for x86, with debug
 ```shell
 cd build;
 cmake .. -DMNN_BUILD_DEMO=on \
- -DCMAKE_BUILD_TYPE=Release \
+ -DCMAKE_BUILD_TYPE=Debug \
  -DMNN_BUILD_TOOLS=on \
  -DMNN_BUILD_QUANTOOLS=on \
  -DMNN_BUILD_CONVERTER=on \
@@ -95,10 +95,35 @@ mobilenetv3small_384_sigmoid_pool.mnn \
 mobilenetv3small_384_sigmoid_pool_quant.mnn \
 ctdet_coco_dlav0_1x_quant.json
 
+$MNN_HOME/build/quantized.out \
+pascal_mobilenetv2mnn_384.mnn \
+pascal_mobilenetv2mnn_384_quant.mnn \
+ctdet_coco_dlav0_1x_quant.json
+
+$MNN_HOME/build/quantized.out \
+AlexNet-imagenet.mnn \
+AlexNet-imagenet_quant.mnn \
+ctdet_coco_dlav0_1x_quant.json
+
+$MNN_HOME/build/quantized.out \
+SqueezeNet-imagenet.mnn \
+SqueezeNet-imagenet_quant.mnn \
+ctdet_coco_dlav0_1x_quant.json
 
 $MNN_HOME/build/quantized.out \
 ghostnet.mnn \
 ghostnet_quant.mnn \
+/workspace/centernet/models/ctdet_coco_dlav0_1x_quant.json
+
+
+$MNN_HOME/build/quantized.out \
+mobilenetv3_384_sigmoid_pool.mnn \
+mobilenetv3_384_sigmoid_pool_quant.mnn \
+/workspace/centernet/models/ctdet_coco_dlav0_1x_quant.json
+
+$MNN_HOME/build/quantized.out \
+MobileNetV2-imagenet.mnn \
+MobileNetV2-imagenet-quant.mnn \
 /workspace/centernet/models/ctdet_coco_dlav0_1x_quant.json
 
 $MNN_HOME/build/MNNConvert -f ONNX \
@@ -147,6 +172,72 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 $MNN_HOME/build/MNNConvert -f ONNX \
 --modelFile mobilenetv3large_upmix_320_sigmoid_pool.onnx \
 --MNNModel mobilenetv3large_upmix_320_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv3fpnsmall_320.onnx \
+--MNNModel mobilenetv3fpnsmall_320.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv2fpn_320_sigmoid_pool.onnx \
+--MNNModel mobilenetv2fpn_320_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv2fpnlite_288_sigmoid_pool.onnx \
+--MNNModel mobilenetv2fpnlite_288_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile MobileNetV2-imagenet.onnx \
+--MNNModel MobileNetV2-imagenet.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile SqueezeNet-imagenet.onnx \
+--MNNModel SqueezeNet-imagenet.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile multi_pose_mobilenetv2large_384.onnx \
+--MNNModel multi_pose_mobilenetv2large_384.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile hourglass.onnx \
+--MNNModel hourglass.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile hourglass-stack2.onnx \
+--MNNModel hourglass-stack2.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile pascal_mobilenetv2litehead_384_sigmoid_pool.onnx \
+--MNNModel pascal_mobilenetv2litehead_384_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile pascal_mobilenetv2litehead_320_sigmoid_pool.onnx \
+--MNNModel pascal_mobilenetv2litehead_320_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv3largelitehead_384_sigmoid_pool.onnx \
+--MNNModel mobilenetv3largelitehead_384_sigmoid_pool.mnn \
 --bizCode MNN \
 --debug true
 

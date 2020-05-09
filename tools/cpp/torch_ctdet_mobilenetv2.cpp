@@ -248,19 +248,19 @@ int Detector::detect(std::string image_path) {
 }
 
 
-// int main(int argc, const char* argv[])
-// {
-//     if (argc != 3) {
-//         // MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid.mnn /workspace/centernet/models/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
-//         MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid_pool.mnn /workspace/centernet/models/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
+int main(int argc, const char* argv[])
+{
+    if (argc != 3) {
+        // MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid.mnn /workspace/centernet/models/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
+        MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid_pool.mnn /workspace/centernet/models/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
         
-//         return 0;
-//     }
-//     std::string image_name = argv[2];
-//     std::string model_name = argv[1];
-//     Detector detector;
-//     detector.init(model_name);
-//     detector.detect(image_name);
-//     return 0;
-// }
+        return 0;
+    }
+    std::string image_name = argv[2];
+    std::string model_name = argv[1];
+    Detector detector;
+    detector.init(model_name);
+    detector.detect(image_name);
+    return 0;
+}
 
