@@ -16,6 +16,9 @@
 #include "Example.hpp"
 #include <MNN/ImageProcess.hpp>
 
+using namespace MNN;
+using namespace MNN::Train;
+
 //
 // the ImageDataset read stored images as input data.
 // use 'pathToImages' and a txt file to construct a ImageDataset.
@@ -28,9 +31,6 @@
 //      pathToImages/image2.jpg
 //      ...
 //
-
-namespace MNN {
-namespace Train {
 class MNN_PUBLIC ImageDataset : public Dataset {
 public:
     class ImageConfig {
@@ -79,7 +79,5 @@ private:
     void getAllDataAndLabelsFromTxt(const std::string pathToImages, std::string pathToImageTxt);
     std::pair<VARP, VARP> getDataAndLabelsFrom(std::pair<std::string, std::vector<int> > dataAndLabels);
 };
-} // namespace Train
-} // namespace MNN
 
 #endif // ImageDataset_hpp

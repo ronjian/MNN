@@ -21,8 +21,6 @@ using namespace cv;
 #endif
 
 using namespace std;
-using namespace MNN;
-using namespace MNN::Train;
 
 /*
  * this is an demo for how to use the ImageDataset and DataLoader

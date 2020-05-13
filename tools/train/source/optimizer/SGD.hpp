@@ -19,6 +19,11 @@ namespace Train {
 
 class MNN_PUBLIC SGD : public ParameterOptimizer {
 public:
+    enum RegularizationMethod {
+        L1,
+        L2,
+    };
+
     virtual std::map<Express::VARP, Express::VARP> onGetNextParameter(Express::VARP loss) override;
 
     Express::VARP regularizeParameters(Express::VARP param, Express::VARP grad);
@@ -27,15 +32,9 @@ public:
 
     void setLearningRate(float rate);
 
-    float getMomentum();
-
     void setMomentum(float momentum);
 
-    float getWeightDecay();
-
     void setWeightDecay(float decay);
-
-    RegularizationMethod getRegularizationMethod();
 
     void setRegularizationMethod(RegularizationMethod method);
 
@@ -44,7 +43,7 @@ public:
     virtual void onAppend(Express::VARP parameters) override;
 
     virtual void onRemove(Express::VARP parameters) override;
-
+    
     void setGradBlockName(std::string block) {
         mGradBlockExprName = std::move(block);
     }

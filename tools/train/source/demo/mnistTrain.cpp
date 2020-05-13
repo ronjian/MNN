@@ -18,7 +18,6 @@
 #include "NN.hpp"
 #define MNN_OPEN_TIME_TRACE
 #include <MNN/AutoTime.hpp>
-#include <PipelineModule.hpp>
 #include "RandomGenerator.hpp"
 #include "Transformer.hpp"
 
@@ -258,10 +257,10 @@ public:
             return 0;
         }
         auto inputOutputs = Variable::getInputAndOutput(varMap);
-        auto inputs       = Variable::mapToSequence(inputOutputs.first);
-        auto outputs      = Variable::mapToSequence(inputOutputs.second);
-
-        std::shared_ptr<Module> model(PipelineModule::extract(inputs, outputs, true));
+        Transformer::turnModelToTrainable(Transformer::TrainConfig())
+            ->onExecute(Variable::mapToSequence(inputOutputs.second));
+        std::shared_ptr<Module> model(Module::transform(Variable::mapToSequence(inputOutputs.first),
+                                                        (Variable::mapToSequence(inputOutputs.second))));
 
         train(model, root);
         return 0;

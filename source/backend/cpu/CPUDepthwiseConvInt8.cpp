@@ -21,7 +21,7 @@ void MNNDepthWiseInt8AddBiasScaleUnit(int8_t* dst, const int8_t* src, const int8
                                       size_t dilateY_step, const float* scale);
 void MNNLineDepthWiseInt8AddBiasScaleUnit(int8_t* dst, const int8_t* src, const int8_t* weight, const int32_t* bias_z,
                                           size_t width, size_t src_w_step, size_t fw, size_t fh, size_t dilateX_step,
-                                          size_t dilateY_step, const float* scale_z, size_t mode);
+                                          size_t dilateY_step, const float* scale_z);
 }
 
 namespace MNN {
@@ -60,8 +60,7 @@ static void MNNDepthWiseInt8AddBiasScaleUnit(int8_t* dst, const int8_t* src, con
 static void MNNLineDepthWiseInt8AddBiasScaleUnit(int8_t* dst, const int8_t* src, const int8_t* weight,
                                                  const int32_t* bias_z, size_t width, size_t src_w_step, size_t fw,
                                                  size_t fh, size_t dilateX_step, size_t dilateY_step,
-                                                 const float* scale_z, size_t mode) {
-    (void)mode;
+                                                 const float* scale_z) {
     int dx, fx, fy;
     for (dx = 0; dx < width; ++dx) {
         auto dst_x          = dst + dx * 4;
@@ -103,8 +102,6 @@ CPUDepthwiseConvInt8::CPUDepthwiseConvInt8(Backend* backend, const MNN::Convolut
         mValid = false;
         return;
     }
-    mFastMode = dwConvParam->symmetricQuan()->method() == QuantizeAlgo_OVERFLOW_AWARE;
-    // mFastMode = true; // debug, always be chosen
     auto weightPtr = mWeightInt8->host<int8_t>();
     memset(weightPtr, 0, weightSizeAlign * sizeof(int8_t));
     const auto originWeight = dwConvParam->symmetricQuan()->weight()->data();
@@ -226,7 +223,7 @@ ErrorCode CPUDepthwiseConvInt8::onResize(const std::vector<Tensor*>& inputs, con
                     auto dst_y          = dst_z + dy * dst_y_step;
                     MNNLineDepthWiseInt8AddBiasScaleUnit(dst_y + l * 4, src_dy + (l * strideX - padX) * 4, weight_dz,
                                                          bias_dz, r - l, strideX * 4, kernel_width, kernel_height,
-                                                         dilateX_step, dilateY_step, scale_dz, (size_t)mFastMode);
+                                                         dilateX_step, dilateY_step, scale_dz);
                 }
             }
 
