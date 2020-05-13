@@ -126,6 +126,11 @@ MobileNetV2-imagenet.mnn \
 MobileNetV2-imagenet-quant.mnn \
 /workspace/centernet/models/ctdet_coco_dlav0_1x_quant.json
 
+$MNN_HOME/build/quantized.out \
+/workspace/centernet/models/pascal_mobilenetv2litehead_288_sigmoid_pool.mnn \
+/workspace/centernet/models/pascal_mobilenetv2litehead_288_sigmoid_pool_quant.mnn \
+/workspace/centernet/models/ctdet_coco_dlav0_1x_quant.json
+
 $MNN_HOME/build/MNNConvert -f ONNX \
 --modelFile mobilenetv3small_224_sigmoid_pool.onnx \
 --MNNModel mobilenetv3small_224_sigmoid_pool.mnn \
@@ -236,10 +241,36 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 --debug true
 
 $MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile /workspace/centernet/models/pascal_mobilenetv2litehead_288_sigmoid_pool.onnx \
+--MNNModel /workspace/centernet/models/pascal_mobilenetv2litehead_288_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
 --modelFile mobilenetv3largelitehead_384_sigmoid_pool.onnx \
 --MNNModel mobilenetv3largelitehead_384_sigmoid_pool.mnn \
 --bizCode MNN \
 --debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile u2netp.onnx \
+--MNNModel u2netp.mnn \
+--bizCode MNN \
+--debug true
+
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv3deepsupvised_384_sigmoid_pool.onnx \
+--MNNModel mobilenetv3deepsupvised_384_sigmoid_pool.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile pascal_mobilenetv2litehead_320_sigmoid_pool_reid.onnx \
+--MNNModel pascal_mobilenetv2litehead_320_sigmoid_pool_reid.mnn \
+--bizCode MNN \
+--debug true
+
 
 ```
 
