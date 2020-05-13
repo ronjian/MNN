@@ -21,9 +21,6 @@
 using namespace std;
 using namespace MNN::CV;
 
-namespace MNN {
-namespace Train {
-
 // behave like python split
 vector<string> split(const string sourceStr, string splitChar = " ") {
     vector<string> result;
@@ -213,6 +210,3 @@ std::pair<VARP, VARP> ImageDataset::getDataAndLabelsFrom(std::pair<std::string, 
 
     return std::make_pair(data, labels);
 }
-
-} // namespace Train
-} // namespace MNN

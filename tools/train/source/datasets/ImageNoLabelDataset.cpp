@@ -32,14 +32,23 @@ static void _readImages(std::vector<std::string>& images, const std::string& fil
     HANDLE hFind = INVALID_HANDLE_VALUE;
     hFind = FindFirstFile(filePath.c_str(), &ffd);
     if (INVALID_HANDLE_VALUE == hFind) {
-        MNN_ERROR("open %s failed!\n", filePath.c_str());
+        std::cout << "open " << filePath << " failed: " << strerror(errno) << std::endl;
         return;
     }
     do {
         const std::string fileName = filePath + "\\" + ffd.cFileName;
         if(INVALID_FILE_ATTRIBUTES != GetFileAttributes(fileName.c_str()) && GetLastError() != ERROR_FILE_NOT_FOUND) {
-            images.push_back(fileName);
-            count++;
+            if (*usedImageNum == 0) {
+                // use all images in the folder
+                images.push_back(fileName);
+                count++;
+            } else if (count < *usedImageNum) {
+                // use usedImageNum images
+                images.push_back(fileName);
+                count++;
+            } else {
+                break;
+            }
         }
     } while (FindNextFile(hFind, &ffd) != 0);
     FindClose(hFind);

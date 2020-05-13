@@ -15,12 +15,6 @@ namespace Train {
 
 class MNN_PUBLIC ParameterOptimizer {
 public:
-    enum RegularizationMethod {
-        L1,
-        L2,
-        L1L2,
-    };
-
     ParameterOptimizer()          = default;
     virtual ~ParameterOptimizer() = default;
     bool step(Express::VARP loss);
@@ -32,8 +26,8 @@ public:
     virtual std::map<Express::VARP, Express::VARP> onGetNextParameter(Express::VARP loss) = 0;
     const std::set<Express::VARP>& parameters() const;
 
-    static ParameterOptimizer* createSGD(float lr, float momentum, float weightDecay, RegularizationMethod method);
-    static ParameterOptimizer* createADAM(float lr, float momentum, float momentum2, float weightDecay, float eps, RegularizationMethod method);
+    static ParameterOptimizer* createSGD(float lr, float momentum);
+    static ParameterOptimizer* createADAM(float lr, float momentum, float momentum2);
 private:
     virtual void onAppend(Express::VARP parameter) = 0;
     virtual void onRemove(Express::VARP parameter) = 0;

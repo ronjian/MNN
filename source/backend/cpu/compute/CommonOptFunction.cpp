@@ -11,13 +11,6 @@
 #include <algorithm>
 #include <math.h>
 #include "math/Vec4.hpp"
-#ifndef MNN_USE_SSE
-bool MNNReorder4x4ByPlatform(float* dst, size_t size) {
-    // Do nothing
-    return false;
-}
-#endif
-
 #ifdef MNN_USE_NEON
 #include <arm_neon.h>
 #endif

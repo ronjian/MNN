@@ -10,7 +10,6 @@
 #define CPUConvInt8_hpp
 
 #include "backend/cpu/CPUConvolution.hpp"
-#include "compute/Int8FunctionsOpt.h"
 
 namespace MNN {
 
@@ -36,7 +35,6 @@ private:
     Tensor mTempIm2ColBuffer;
     // Tensor mTempDstBuffer;
     Tensor mTempRemainBuffer;
-    INT8GEMM_KERNEL mGemmKernel;
 };
 
 #ifdef ENABLE_ARMV82
