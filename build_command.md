@@ -10,7 +10,7 @@ build for x86, with debug
 ```shell
 cd build;
 cmake .. -DMNN_BUILD_DEMO=on \
- -DCMAKE_BUILD_TYPE=Debug \
+ -DCMAKE_BUILD_TYPE=Release \
  -DMNN_BUILD_TOOLS=on \
  -DMNN_BUILD_QUANTOOLS=on \
  -DMNN_BUILD_CONVERTER=on \
@@ -268,6 +268,12 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 $MNN_HOME/build/MNNConvert -f ONNX \
 --modelFile pascal_mobilenetv2litehead_320_sigmoid_pool_reid.onnx \
 --MNNModel pascal_mobilenetv2litehead_320_sigmoid_pool_reid.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile pascal_mobilenetv2mnn_384.onnx \
+--MNNModel pascal_mobilenetv2mnn_384.mnn \
 --bizCode MNN \
 --debug true
 
