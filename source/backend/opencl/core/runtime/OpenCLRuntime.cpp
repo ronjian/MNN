@@ -46,6 +46,7 @@ OpenCLRuntime::OpenCLRuntime(bool permitFloat16) {
         cl::Platform::setDefault(platforms[0]);
         std::vector<cl::Device> gpuDevices;
         platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &gpuDevices);
+        // platforms[0].getDevices(CL_DEVICE_TYPE_CPU, &gpuDevices);
 
         if(1 <= gpuDevices.size()){
             mFirstGPUDevicePtr              = std::make_shared<cl::Device>(gpuDevices[0]);
