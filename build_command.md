@@ -26,7 +26,7 @@ make -j$(nproc)
 
 build for 8053 board
 ```shell
-cd build8053;
+cd build8053
 cmake .. -DCMAKE_TOOLCHAIN_FILE=../arm-linux-gnueabi.cmake \
 -DCMAKE_BUILD_TYPE=Release \
 -DMNN_BUILD_DEMO=off \
@@ -37,6 +37,23 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE=../arm-linux-gnueabi.cmake \
 -DMNN_BUILD_BENCHMARK=true \
 -DMNN_BUILD_TEST=off \
 -DMNN_OPENCL=true \
+-DMNN_BUILD_TOOLS=on
+make -j$(nproc)
+```
+
+build for mr813
+```shell
+cd buildmr813
+cmake .. -DCMAKE_TOOLCHAIN_FILE=../arm-linux-gnueabi-mr813.cmake \
+-DCMAKE_BUILD_TYPE=Release \
+-DMNN_BUILD_DEMO=off \
+-DMNN_BUILD_QUANTOOLS=off \
+-DMNN_EVALUATION=off \
+-DMNN_BUILD_CONVERTER=off \
+-DMNN_SEP_BUILD=false \
+-DMNN_BUILD_BENCHMARK=true \
+-DMNN_BUILD_TEST=off \
+-DMNN_OPENCL=on \
 -DMNN_BUILD_TOOLS=on
 make -j$(nproc)
 ```
@@ -278,6 +295,23 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 --bizCode MNN \
 --debug true
 
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv2litehead_240x320.onnx \
+--MNNModel mobilenetv2litehead_240x320.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile dla34lite_320x320.onnx \
+--MNNModel dla34lite_320x320.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile dla34lite_320x320_64.onnx \
+--MNNModel dla34lite_320x320_64.mnn \
+--bizCode MNN \
+--debug true
 
 ```
 
