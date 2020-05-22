@@ -17,6 +17,7 @@
 #include "core/Macro.h"
 //#define MNN_OPEN_TIME_TRACE
 #include <MNN/AutoTime.hpp>
+#include <iostream>
 namespace MNN {
 
 extern const std::map<std::string, std::vector<unsigned char>> OpenCLProgramMap;
@@ -52,6 +53,11 @@ OpenCLRuntime::OpenCLRuntime(bool permitFloat16) {
             mFirstGPUDevicePtr              = std::make_shared<cl::Device>(gpuDevices[0]);
             const std::string deviceName    = mFirstGPUDevicePtr->getInfo<CL_DEVICE_NAME>();
             const std::string deviceVersion = mFirstGPUDevicePtr->getInfo<CL_DEVICE_VERSION>();
+            std::cout << "gpu devices size: " << gpuDevices.size() << std::endl;
+            for (int gpu_i = 0 ; gpu_i < gpuDevices.size(); gpu_i++) {
+                mFirstGPUDevicePtr2 = std::make_shared<cl::Device>(gpuDevices[gpu_i]);
+                std::cout << "gpu_i: " << gpu_i << " ,deviceName: " << mFirstGPUDevicePtr2->getInfo<CL_DEVICE_NAME>() << " ,deviceVersion:" << mFirstGPUDevicePtr2->getInfo<CL_DEVICE_VERSION>() << std::endl;
+            }
             static std::map<std::string, float> gFlopsMap {
                 {"Mali-T860", 6.83f},
                 {"Mali-T880", 6.83f},

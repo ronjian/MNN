@@ -82,6 +82,7 @@ private:
 private:
     std::shared_ptr<::cl::Context> mContext;
     std::shared_ptr<::cl::Device> mFirstGPUDevicePtr;
+    std::shared_ptr<::cl::Device> mFirstGPUDevicePtr2;
     std::shared_ptr<::cl::CommandQueue> mCommandQueuePtr;
     std::map<std::string, ::cl::Program> mBuildProgramMap;
     uint64_t mGPUGlobalMemeryCacheSize;
