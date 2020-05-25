@@ -43,6 +43,7 @@ OpenCLRuntime::OpenCLRuntime(bool permitFloat16) {
     mDefaultBuildParams = " -cl-mad-enable";
     std::vector<cl::Platform> platforms;
     cl::Platform::get(&platforms);
+    std::cout << "platforms size: " << platforms.size() << std::endl;
     if(platforms.size() > 0){
         cl::Platform::setDefault(platforms[0]);
         std::vector<cl::Device> gpuDevices;

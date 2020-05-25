@@ -362,3 +362,5 @@ project/ios/ios_32
 project/ios/MNN.framework
 
 pymnn_build/
+
+rk3326/
