@@ -12,13 +12,13 @@ cd build;
 cmake .. -DMNN_BUILD_DEMO=on \
  -DCMAKE_BUILD_TYPE=Debug \
  -DMNN_BUILD_TOOLS=on \
- -DMNN_BUILD_QUANTOOLS=off \
+ -DMNN_BUILD_QUANTOOLS=on \
  -DMNN_BUILD_CONVERTER=on \
  -DMNN_SUPPORT_TFLITE_QUAN=off \
  -DMNN_DEBUG_MEMORY=on \
  -DMNN_DEBUG_TENSOR_SIZE=off \
  -DMNN_BUILD_BENCHMARK=off \
- -DMNN_OPENCL=on \
+ -DMNN_OPENCL=off \
  -DMNN_USE_SYSTEM_LIB=on \
  -DMNN_SEP_BUILD=false;
 make -j$(nproc)
@@ -147,6 +147,11 @@ MobileNetV2-imagenet-quant.mnn \
 $MNN_HOME/build/quantized.out \
 /workspace/centernet/models/pascal_mobilenetv2litehead_288_sigmoid_pool.mnn \
 /workspace/centernet/models/pascal_mobilenetv2litehead_288_sigmoid_pool_quant.mnn \
+/workspace/centernet/models/ctdet_coco_dlav0_1x_quant.json
+
+$MNN_HOME/build/quantized.out \
+/workspace/centernet/models/mobilenetv2litehead_240x320.mnn \
+/workspace/centernet/models/mobilenetv2litehead_240x320_quant.mnn \
 /workspace/centernet/models/ctdet_coco_dlav0_1x_quant.json
 
 $MNN_HOME/build/MNNConvert -f ONNX \
@@ -313,6 +318,41 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 --bizCode MNN \
 --debug true
 
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile torchvision-mobilenetv2.onnx \
+--MNNModel torchvision-mobilenetv2.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mb2-ssd-lite.onnx \
+--MNNModel mb2-ssd-lite.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile torchvision-res18.onnx \
+--MNNModel torchvision-res18.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile torchvision-vgg11.onnx \
+--MNNModel torchvision-vgg11.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile version-RFB-320_simplified.onnx \
+--MNNModel version-RFB-320_simplified.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile version-slim-320_simplified.onnx \
+--MNNModel version-slim-320_simplified.mnn \
+--bizCode MNN \
+--debug true
 ```
 
 
