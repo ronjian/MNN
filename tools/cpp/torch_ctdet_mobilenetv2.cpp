@@ -43,12 +43,16 @@ Detector::~Detector()
 
 int Detector::init(std::string model_path)
 {
+    auto tic = getTimeInUs();
     auto revertor = std::unique_ptr<Revert>(new Revert(model_path.c_str()));
     revertor->initialize();
     auto modelBuffer      = revertor->getBuffer();
     const auto bufferSize = revertor->getBufferSize();
     net = std::shared_ptr<MNN::Interpreter>(MNN::Interpreter::createFromBuffer(modelBuffer, bufferSize));
     revertor.reset();
+    printf("create net costs: %8.3fms\n", (getTimeInUs() - tic) / 1000.0f);
+    tic = getTimeInUs();
+
     MNN::ScheduleConfig config;
     config.numThread = threads;
     config.type      = static_cast<MNNForwardType>(forward);
@@ -58,7 +62,13 @@ int Detector::init(std::string model_path)
     backendConfig.memory = (MNN::BackendConfig::MemoryMode) memory;
     config.backendConfig = &backendConfig;
     config.saveTensors = {hmTensorID};
+    printf("before create session costs: %8.3fms\n", (getTimeInUs() - tic) / 1000.0f);
+    tic = getTimeInUs();
+
     session = net->createSession(config);
+    printf("create session costs: %8.3fms\n", (getTimeInUs() - tic) / 1000.0f);
+    tic = getTimeInUs();
+
     net->releaseModel();
     nhwc_Tensor = MNN::Tensor::create<float>({1, INPUT_SIZE, INPUT_SIZE, 3}, NULL, MNN::Tensor::TENSORFLOW);
     wh  = net->getSessionOutput(session, whTensorID);
@@ -86,6 +96,7 @@ int Detector::preProcess(std::string image_path) {
     printf("copy data costs: %8.3fms\n", (toc - tic) / 1000.0f);
     return 0;
 }
+
 
 int Detector::inference() {
     auto inputTensor  = net->getSessionInput(session, nullptr);
@@ -206,7 +217,7 @@ int Detector::nms(std::vector<ObjInfo>& input, std::vector<ObjInfo>& output, flo
     return 0;
 }
 
-int Detector::detect(std::string image_path) {
+int Detector::detect(std::string image_path, std::string idname) {
     /* PRE-PROCESS */
     auto tic = getTimeInUs();
     preProcess(image_path);
@@ -214,10 +225,14 @@ int Detector::detect(std::string image_path) {
     printf("pre-precess costs: %8.3fms\n", (toc - tic) / 1000.0f);
 
     /* INFERENCE */
-    tic = getTimeInUs();
-    inference();
-    toc = getTimeInUs();
-    printf("runSession costs: %8.3fms\n", (toc - tic) / 1000.0f);
+    while (1) {
+        tic = getTimeInUs();
+        inference();
+        toc = getTimeInUs();
+        std::cout << "idname:" << idname << " tic:" << tic << " toc:" << toc;
+        printf(" runSession costs: %8.3fms\n", (toc - tic) / 1000.0f);
+    }
+
 
     /* POST-PRECESS */
     tic = getTimeInUs();
@@ -250,7 +265,7 @@ int Detector::detect(std::string image_path) {
 
 int main(int argc, const char* argv[])
 {
-    if (argc != 3) {
+    if (argc != 4) {
         // MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid.mnn /workspace/centernet/models/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
         MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid_pool.mnn /workspace/centernet/models/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
         
@@ -258,9 +273,13 @@ int main(int argc, const char* argv[])
     }
     std::string image_name = argv[2];
     std::string model_name = argv[1];
+    std::string idname = argv[3];
     Detector detector;
+    auto tic = getTimeInUs();
     detector.init(model_name);
-    detector.detect(image_name);
+    auto toc = getTimeInUs();
+    printf("init costs: %8.3fms\n", (toc - tic) / 1000.0f);
+    detector.detect(image_name, idname);
     return 0;
 }
 

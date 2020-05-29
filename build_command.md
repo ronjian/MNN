@@ -54,6 +54,7 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE=../arm-linux-gnueabi-mr813.cmake \
 -DMNN_BUILD_BENCHMARK=true \
 -DMNN_BUILD_TEST=off \
 -DMNN_OPENCL=on \
+-DMNN_VULKAN=on \
 -DMNN_BUILD_TOOLS=on
 make -j$(nproc)
 ```

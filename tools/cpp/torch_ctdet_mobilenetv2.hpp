@@ -47,11 +47,19 @@ public:
 	
 	int init(std::string model_path);
 	int preProcess(std::string image_path);
-	int detect(std::string image_path);
 	int inference();
+	int detect(std::string image_path, std::string idname);
+	int decode(std::vector<ObjInfo>& objs_tmp);
+	// borrow from: https://github.com/ouyanghuiyu/centernet_mobilenetv2_ncnn/blob/master/cpp/ncnn_centernet.cpp
+	int nms(std::vector<ObjInfo>& input, std::vector<ObjInfo>& output, float nmsthreshold, int type);
+
+	int init2(std::string model_path);
+	int preProcess2(std::string image_path);
+	int inference2();
 
 private: 
 	std::shared_ptr<MNN::Interpreter> net;
+	std::shared_ptr<MNN::Interpreter> net2;
 	MNN::Session * session;
     MNN::Tensor * nhwc_Tensor;
 	MNN::Tensor * wh;
@@ -59,10 +67,5 @@ private:
 	MNN::Tensor * hmpool;
 	MNN::Tensor * reg;
 	cv::Mat affinedImage;
-	
-
-	int decode(std::vector<ObjInfo>& objs_tmp);
-	// borrow from: https://github.com/ouyanghuiyu/centernet_mobilenetv2_ncnn/blob/master/cpp/ncnn_centernet.cpp
-	int nms(std::vector<ObjInfo>& input, std::vector<ObjInfo>& output, float nmsthreshold, int type);
 
 };
