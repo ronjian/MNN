@@ -1,10 +1,10 @@
 
 #include "core/Backend.hpp"
-#include "revertMNNModel.hpp"
+// #include "revertMNNModel.hpp"
 #include <MNN/Interpreter.hpp>
 #include <MNN/MNNDefine.h>
 #include <MNN/Tensor.hpp>
-
+#include "revertMNNModel.hpp"
 #include <iostream>
 #include <sys/time.h>
 #include <vector>
@@ -13,7 +13,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "torch_ctdet_mobilenetv2.hpp"
+#include "CtdetMobilenetV2Lite.hpp"
 
 
 static inline uint64_t getTimeInUs() {
@@ -49,17 +49,9 @@ int Detector::init(std::string model_path)
     auto modelBuffer      = revertor->getBuffer();
     auto bufferSize = revertor->getBufferSize();
     net = std::shared_ptr<MNN::Interpreter>(MNN::Interpreter::createFromBuffer(modelBuffer, bufferSize));
-    // net2 = std::shared_ptr<MNN::Interpreter>(MNN::Interpreter::createFromBuffer(modelBuffer, bufferSize));
-    // revertor.reset();
+    revertor.reset();
     printf("create net costs: %8.3fms\n", (getTimeInUs() - tic) / 1000.0f);
     tic = getTimeInUs();
-
-    revertor = std::unique_ptr<Revert>(new Revert(model_path.c_str()));
-    revertor->initialize();
-    modelBuffer      = revertor->getBuffer();
-    bufferSize = revertor->getBufferSize();
-    net2 = std::shared_ptr<MNN::Interpreter>(MNN::Interpreter::createFromBuffer(modelBuffer, bufferSize));
-    revertor.reset();
 
     MNN::ScheduleConfig config;
     config.numThread = threads;
@@ -72,14 +64,12 @@ int Detector::init(std::string model_path)
     config.saveTensors = {hmTensorID};
     printf("before create session costs: %8.3fms\n", (getTimeInUs() - tic) / 1000.0f);
     tic = getTimeInUs();
-
     session = net->createSession(config);
-    session2 = net2->createSession(config);
     printf("create session costs: %8.3fms\n", (getTimeInUs() - tic) / 1000.0f);
     tic = getTimeInUs();
 
     net->releaseModel();
-    nhwc_Tensor = MNN::Tensor::create<float>({1, INPUT_SIZE, INPUT_SIZE, 3}, NULL, MNN::Tensor::TENSORFLOW);
+    nhwc_Tensor = MNN::Tensor::create<float>({1, HEIGHT_SIZE, WIDTH_SIZE, 3}, NULL, MNN::Tensor::TENSORFLOW); //NHWC
     wh  = net->getSessionOutput(session, whTensorID);
     hm  = net->getSessionOutput(session, hmTensorID);
     hmpool  = net->getSessionOutput(session, hmpoolTensorID);
@@ -89,18 +79,32 @@ int Detector::init(std::string model_path)
 
 int Detector::preProcess(std::string image_path) {
     /* PRE-PROCESS */
-    const cv::Mat mean(INPUT_SIZE, INPUT_SIZE, CV_32FC3, meanValue);
-    const cv::Mat std(INPUT_SIZE, INPUT_SIZE, CV_32FC3, stdValue);
+    printf("0\n");
+    const cv::Mat mean(HEIGHT_SIZE, WIDTH_SIZE, CV_32FC3, meanValue);
+    printf("1\n");
+    const cv::Mat std(HEIGHT_SIZE, WIDTH_SIZE, CV_32FC3, stdValue);
+    printf("2\n");
     cv::Mat raw_image    = cv::imread(image_path);
+    printf("3\n");
     cv::Size raw_imageSize =  raw_image.size();
+    printf("4\n");
     MNN_CHECK(raw_imageSize.height == inputImageHeight, "input image height error");
     MNN_CHECK(raw_imageSize.width == inputImageWidth, "input image width error");
-    cv::warpAffine(raw_image, affinedImage, transInput, cv::Size(INPUT_SIZE, INPUT_SIZE), cv::INTER_LINEAR);
+    printf("5\n");
+    cv::resize(raw_image, affinedImage, cv::Size(WIDTH_SIZE, HEIGHT_SIZE));
+    printf("6\n");
     cv::Mat image;
     affinedImage.convertTo(image, CV_32FC3);
+    cv::imwrite("pre-inference.jpg", affinedImage);
+    printf("7\n");
+    std::cout << image.size() << std::endl;
+    std::cout << mean.size() << std::endl;
+    std::cout << std.size() << std::endl;
     image = (image / 255.0f - mean) / std;
+    printf("8\n");
     auto tic = getTimeInUs();
     ::memcpy(nhwc_Tensor->host<float>(), image.data, nhwc_Tensor->size());
+    printf("9\n");
     auto toc = getTimeInUs();
     printf("copy data costs: %8.3fms\n", (toc - tic) / 1000.0f);
     return 0;
@@ -108,14 +112,13 @@ int Detector::preProcess(std::string image_path) {
 
 
 int Detector::inference() {
+    printf("1\n");
     auto inputTensor  = net->getSessionInput(session, nullptr);
-    std::cout << "nhwc size is: " << nhwc_Tensor->size() << std::endl;
+    printf("2\n");
+    std::cout << nhwc_Tensor->size() << std::endl;
     inputTensor->copyFromHostTensor(nhwc_Tensor);
+    printf("3\n");
     net->runSession(session);
-
-    auto inputTensor2  = net2->getSessionInput(session2, nullptr);
-    inputTensor2->copyFromHostTensor(nhwc_Tensor);
-    net2->runSession(session2);
     return 0;
 }
 
@@ -143,11 +146,13 @@ int Detector::decode(std::vector<ObjInfo>& objs_tmp) {
                 float score = hm_dataPtr[c * H * W + h * W + w];
                 if (score > scoreThreshold && score == hmpool_dataPtr[c * H * W + h * W + w]) {
                     ObjInfo objbox;
-                    objbox.label = floor(idx / (H * W));
+                    objbox.label = c;
                     objbox.score = score;
-                    int refIdx = idx - objbox.label * H * W;
-                    float centerX = refIdx % W;
-                    float centerY = floor(refIdx / W);
+                    int refIdx = h * W + w;
+                    float centerX = w;
+                    float centerY = h;
+                    // std::cout << "w:" << w << ", h:" << h << ", score:" << objbox.score << ", label:" << objbox.label << std::endl;
+                    cv::circle(affinedImage, cv::Point(w * 4.0, h * 4.0), 1, cv::Scalar(0,255,0), 2);
                     float xReg = reg_dataPtr[refIdx];
                     float yReg = reg_dataPtr[refIdx + H * W];
                     float width = wh_dataPtr[refIdx];
@@ -231,7 +236,7 @@ int Detector::nms(std::vector<ObjInfo>& input, std::vector<ObjInfo>& output, flo
     return 0;
 }
 
-int Detector::detect(std::string image_path, std::string idname) {
+int Detector::detect(std::string image_path) {
     /* PRE-PROCESS */
     auto tic = getTimeInUs();
     preProcess(image_path);
@@ -239,13 +244,10 @@ int Detector::detect(std::string image_path, std::string idname) {
     printf("pre-precess costs: %8.3fms\n", (toc - tic) / 1000.0f);
 
     /* INFERENCE */
-    while (1) {
-        tic = getTimeInUs();
-        inference();
-        toc = getTimeInUs();
-        std::cout << "idname:" << idname << " tic:" << tic << " toc:" << toc;
-        printf(" runSession costs: %8.3fms\n", (toc - tic) / 1000.0f);
-    }
+    tic = getTimeInUs();
+    inference();
+    toc = getTimeInUs();
+    printf("runSession costs: %8.3fms\n", (toc - tic) / 1000.0f);
 
 
     /* POST-PRECESS */
@@ -255,23 +257,22 @@ int Detector::detect(std::string image_path, std::string idname) {
     toc = getTimeInUs();
     printf("decode costs: %8.3fms\n", (toc - tic) / 1000.0f);
 
-    // tic = getTimeInUs();
-    // nms(objs_tmp, dets, iouThreshold, NMS_UNION);
-    // toc = getTimeInUs();
-    // printf("nms costs: %8.3fms\n", (toc - tic) / 1000.0f);
-    dets = objs_tmp;
+    tic = getTimeInUs();
+    nms(objs_tmp, dets, iouThreshold, NMS_UNION);
+    toc = getTimeInUs();
+    printf("nms costs: %8.3fms\n", (toc - tic) / 1000.0f);
     
-
     /* VISUALIZATION */
-    // for (auto obj: dets) {
-    //     cv::Rect vis_box;
-    //     vis_box.x = obj.x1;
-    //     vis_box.y = obj.y1;
-    //     vis_box.width  = obj.x2 - obj.x1;
-    //     vis_box.height = obj.y2 - obj.y1;
-    //     cv::rectangle(affinedImage, vis_box, cv::Scalar(0,0,255), 2);
-    // }
-    // cv::imwrite(visImg, affinedImage);
+    for (auto obj: dets) {
+        cv::Rect vis_box;
+        vis_box.x = obj.x1;
+        vis_box.y = obj.y1;
+        vis_box.width  = obj.x2 - obj.x1;
+        vis_box.height = obj.y2 - obj.y1;
+        std::cout << obj.label << obj.score << std::endl;
+        cv::rectangle(affinedImage, vis_box, cv::Scalar(0,0,255), 2);
+    }
+    cv::imwrite(visImg, affinedImage);
 
     return 0;
 }
@@ -279,21 +280,18 @@ int Detector::detect(std::string image_path, std::string idname) {
 
 int main(int argc, const char* argv[])
 {
-    if (argc != 4) {
-        // MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid.mnn /workspace/centernet/models/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
-        MNN_PRINT("Usage: ./torch_ctdet_mobilenetv2.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid_pool.mnn /workspace/centernet/models/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
-        
+    if (argc != 3) {
+        MNN_PRINT("Usage: ./CtdetMobilenetV2Lite.out pascal_mobilenetv2_384_sigmoid_pool.mnn StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
         return 0;
     }
     std::string image_name = argv[2];
     std::string model_name = argv[1];
-    std::string idname = argv[3];
     Detector detector;
     auto tic = getTimeInUs();
     detector.init(model_name);
     auto toc = getTimeInUs();
     printf("init costs: %8.3fms\n", (toc - tic) / 1000.0f);
-    detector.detect(image_name, idname);
+    detector.detect(image_name);
     return 0;
 }
 

@@ -10,14 +10,14 @@ build for x86, with debug
 ```shell
 cd build;
 cmake .. -DMNN_BUILD_DEMO=on \
- -DCMAKE_BUILD_TYPE=Debug \
+ -DCMAKE_BUILD_TYPE=Release \
  -DMNN_BUILD_TOOLS=on \
  -DMNN_BUILD_QUANTOOLS=on \
  -DMNN_BUILD_CONVERTER=on \
  -DMNN_SUPPORT_TFLITE_QUAN=off \
- -DMNN_DEBUG_MEMORY=on \
+ -DMNN_DEBUG_MEMORY=off \
  -DMNN_DEBUG_TENSOR_SIZE=off \
- -DMNN_BUILD_BENCHMARK=off \
+ -DMNN_BUILD_BENCHMARK=on \
  -DMNN_OPENCL=off \
  -DMNN_USE_SYSTEM_LIB=on \
  -DMNN_SEP_BUILD=false;
@@ -354,7 +354,43 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 --MNNModel version-slim-320_simplified.mnn \
 --bizCode MNN \
 --debug true
+
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv2litehead_320x320.onnx \
+--MNNModel mobilenetv2litehead_320x320.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv2litehead_320x320.onnx \
+--MNNModel mobilenetv2litehead_320x320.mnn \
+--bizCode MNN \
+--debug true
+
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile fasterrcnn.onnx \
+--MNNModel fasterrcnn.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ssd300_coco.onnx \
+--MNNModel ssd300_coco.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv2litehead_384x512.onnx \
+--MNNModel mobilenetv2litehead_384x512.mnn \
+--bizCode MNN \
+--debug true
+
 ```
 
+```
+./CtdetMobilenetV2Lite.out /workspace/centernet/models/mobilenetv2litehead_288x384.mnn /workspace/downloads/rockrobo_data/det_testset/neice_final/VOC2007/JPEGImages/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg
 
-
+./CtdetMobilenetV2Lite.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid_pool.mnn /workspace/downloads/rockrobo_data/det_testset/neice_final/VOC2007/JPEGImages/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg
+```
