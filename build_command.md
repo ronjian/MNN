@@ -405,7 +405,9 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 
 ./CtdetMobilenetV2Lite.out /workspace/centernet/models/mobilenetv2litehead_384x512.mnn /workspace/downloads/rockrobo_data/det_testset/neice_final/VOC2007/JPEGImages/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg
 
+./NeiceTest.out /workspace/centernet/models/mobilenetv2litehead_384x512.mnn /workspace/centernet/data/baiguang/annotations/baiguang_val.json /workspace/centernet/data/baiguang/images/ /workspace/Object-Detection-Evaluation/mnn-baiguang.txt
 
 ./NeiceTest.out /workspace/centernet/models/mobilenetv2litehead_192x256.mnn /workspace/centernet/data/baiguang/annotations/baiguang_val.json /workspace/centernet/data/baiguang/images/ /workspace/Object-Detection-Evaluation/mnn-baiguang.txt
 
+./NeiceTest.out /workspace/centernet/models/mobilenetv2litehead_256x320.mnn /workspace/centernet/data/baiguang/annotations/baiguang_val.json /workspace/centernet/data/baiguang/images/ /workspace/Object-Detection-Evaluation/mnn-baiguang.txt
 ```
