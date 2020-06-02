@@ -387,10 +387,25 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 --bizCode MNN \
 --debug true
 
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv2litehead_192x256.onnx \
+--MNNModel mobilenetv2litehead_192x256.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv2litehead_256x320.onnx \
+--MNNModel mobilenetv2litehead_256x320.mnn \
+--bizCode MNN \
+--debug true
 ```
 
 ```
-./CtdetMobilenetV2Lite.out /workspace/centernet/models/mobilenetv2litehead_288x384.mnn /workspace/downloads/rockrobo_data/det_testset/neice_final/VOC2007/JPEGImages/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg
+./CtdetMobilenetV2Lite.out /workspace/centernet/models/mobilenetv2litehead_384x512.mnn /workspace/centernet/data/baiguang/images/StereoVision_L_10177074_17_0_1_7084.jpeg
 
-./CtdetMobilenetV2Lite.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid_pool.mnn /workspace/downloads/rockrobo_data/det_testset/neice_final/VOC2007/JPEGImages/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg
+./CtdetMobilenetV2Lite.out /workspace/centernet/models/mobilenetv2litehead_384x512.mnn /workspace/downloads/rockrobo_data/det_testset/neice_final/VOC2007/JPEGImages/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg
+
+
+./NeiceTest.out /workspace/centernet/models/mobilenetv2litehead_192x256.mnn /workspace/centernet/data/baiguang/annotations/baiguang_val.json /workspace/centernet/data/baiguang/images/ /workspace/Object-Detection-Evaluation/mnn-baiguang.txt
+
 ```

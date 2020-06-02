@@ -26,8 +26,12 @@ public:
     const int power     = 0;
     const int memory    = 0;
     const int threads   = 4;
-	const int WIDTH_SIZE = 384;
-	const int HEIGHT_SIZE = 288;
+	// const int WIDTH_SIZE = 320;
+	// const int HEIGHT_SIZE = 256;
+	// const int PAD = 8;
+	const int WIDTH_SIZE = 256;
+	const int HEIGHT_SIZE = 192;
+	const int PAD = 0;
     const char * hmTensorID = "hm";
 	const char * hmpoolTensorID = "hm_pool";
 	const char * whTensorID = "wh";
@@ -37,10 +41,9 @@ public:
     const int H = HEIGHT_SIZE / scale;
     const int W = WIDTH_SIZE / scale;
     const float scoreThreshold = 0.1f;
-	// const float scoreThreshold = 0.5f;
     const int inputImageHeight = 960;
     const int inputImageWidth = 1280;
-    const float iouThreshold = 0.5f;
+    const float iouThreshold = 0.7f;
     // const cv::Mat transInput = (cv::Mat_<float>(2,3)<<0.3f,-0.f,0.f,0.f,0.3f,48.f);
     const std::string visImg = "./result.jpg";
 	const cv::Scalar meanValue = cv::Scalar(0.408f, 0.447f, 0.47f);

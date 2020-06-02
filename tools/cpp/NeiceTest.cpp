@@ -8,7 +8,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include "torch_ctdet_mobilenetv2.hpp"
+#include "CtdetMobilenetV2Lite.hpp"
 
 using namespace rapidjson;
 using namespace std;
@@ -26,8 +26,7 @@ namespace patch
 int main(int argc, const char* argv[])
 {
     if (argc != 5) {
-        MNN_PRINT("Usage: ./NeiceTest.out /workspace/centernet/models/pascal_mobilenetv2_384_sigmoid_pool.mnn /workspace/centernet/data/voc/annotations/pascal_neice_final.json /workspace/centernet/data/voc/images/ /workspace/Object-Detection-Evaluation/neice/result-from-mnn.txt\n");
-        //8053 useage: ./NeiceTest.out /data/jiangrong0311/models/pascal_mobilenetv2_384_sigmoid_pool.mnn /data/jiangrong0311/models/pascal_neice_final.json /data/jiangrong0311/images/ /data/jiangrong0311/models/result-from-mnn.txt
+        MNN_PRINT("Usage: ./NeiceTest.out /workspace/centernet/models/mobilenetv2litehead_256x320.mnn /workspace/centernet/data/baiguang/annotations/baiguang_val.json /workspace/centernet/data/baiguang/images/ /workspace/Object-Detection-Evaluation/mnn-baiguang.txt\n");
         return 0;
     }
     string modelPath = argv[1];
@@ -54,8 +53,10 @@ int main(int argc, const char* argv[])
     int y1;
     int category_id;
     float score;
-    double transScale = 13.333333333;
-    double transBias = -160.0;
+    // double transScale = 13.333333333;
+    // double transBias = -160.0;
+    double xscale = detector.inputImageWidth / detector.WIDTH_SIZE;
+    double yscale = detector.inputImageHeight / detector.HEIGHT_SIZE;
     string imgName;
     // int csum = 0;
     for (auto& img : D["images"].GetArray()) {
@@ -68,12 +69,12 @@ int main(int argc, const char* argv[])
         detector.detect(imgDir + imgName);
         // cout << detector.dets.size() << endl;
         if (detector.dets.size() > 0) {
-            line = "/workspace/centernet/data/voc/images/" + imgName;
+            line = imgDir + imgName;
             for (auto det: detector.dets) {
-                x0 = (int) (det.x1 / detector.scale * transScale);
-                y0 = (int) (det.y1 / detector.scale * transScale + transBias);
-                x1 = (int) (det.x2 / detector.scale * transScale);
-                y1 = (int) (det.y2 / detector.scale * transScale + transBias);
+                x0 = (int) (det.x1 * xscale);
+                y0 = (int) ((det.y1 - detector.PAD) * yscale);
+                x1 = (int) (det.x2 * xscale);
+                y1 = (int) ((det.y2 - detector.PAD) * yscale);
                 category_id = (int) det.label + 1;
                 score = det.score;
 

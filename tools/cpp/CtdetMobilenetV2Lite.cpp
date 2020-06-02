@@ -43,6 +43,7 @@ Detector::~Detector()
 
 int Detector::init(std::string model_path)
 {
+    std::cout << "model_path:" << model_path << ",HEIGHT_SIZE:" << HEIGHT_SIZE << ",WIDTH_SIZE:" << WIDTH_SIZE << std::endl;
     auto tic = getTimeInUs();
     auto revertor = std::unique_ptr<Revert>(new Revert(model_path.c_str()));
     revertor->initialize();
@@ -91,7 +92,8 @@ int Detector::preProcess(std::string image_path) {
     MNN_CHECK(raw_imageSize.height == inputImageHeight, "input image height error");
     MNN_CHECK(raw_imageSize.width == inputImageWidth, "input image width error");
     printf("5\n");
-    cv::resize(raw_image, affinedImage, cv::Size(WIDTH_SIZE, HEIGHT_SIZE));
+    cv::resize(raw_image, affinedImage, cv::Size(WIDTH_SIZE, HEIGHT_SIZE - PAD - PAD));
+    cv::copyMakeBorder(affinedImage, affinedImage, PAD, PAD, 0, 0, cv::BORDER_CONSTANT, cv::Scalar(0.0f, 0.0f, 0.0f) );
     printf("6\n");
     cv::Mat image;
     affinedImage.convertTo(image, CV_32FC3);
@@ -151,7 +153,7 @@ int Detector::decode(std::vector<ObjInfo>& objs_tmp) {
                     int refIdx = h * W + w;
                     float centerX = w;
                     float centerY = h;
-                    // std::cout << "w:" << w << ", h:" << h << ", score:" << objbox.score << ", label:" << objbox.label << std::endl;
+                    std::cout << "w:" << w << ", h:" << h << ", score:" << objbox.score << ", label:" << objbox.label << std::endl;
                     cv::circle(affinedImage, cv::Point(w * 4.0, h * 4.0), 1, cv::Scalar(0,255,0), 2);
                     float xReg = reg_dataPtr[refIdx];
                     float yReg = reg_dataPtr[refIdx + H * W];
@@ -257,10 +259,11 @@ int Detector::detect(std::string image_path) {
     toc = getTimeInUs();
     printf("decode costs: %8.3fms\n", (toc - tic) / 1000.0f);
 
-    tic = getTimeInUs();
-    nms(objs_tmp, dets, iouThreshold, NMS_UNION);
-    toc = getTimeInUs();
-    printf("nms costs: %8.3fms\n", (toc - tic) / 1000.0f);
+    // tic = getTimeInUs();
+    // nms(objs_tmp, dets, iouThreshold, NMS_UNION);
+    // toc = getTimeInUs();
+    // printf("nms costs: %8.3fms\n", (toc - tic) / 1000.0f);
+    dets = objs_tmp;
     
     /* VISUALIZATION */
     for (auto obj: dets) {
@@ -278,20 +281,20 @@ int Detector::detect(std::string image_path) {
 }
 
 
-int main(int argc, const char* argv[])
-{
-    if (argc != 3) {
-        MNN_PRINT("Usage: ./CtdetMobilenetV2Lite.out pascal_mobilenetv2_384_sigmoid_pool.mnn StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
-        return 0;
-    }
-    std::string image_name = argv[2];
-    std::string model_name = argv[1];
-    Detector detector;
-    auto tic = getTimeInUs();
-    detector.init(model_name);
-    auto toc = getTimeInUs();
-    printf("init costs: %8.3fms\n", (toc - tic) / 1000.0f);
-    detector.detect(image_name);
-    return 0;
-}
+// int main(int argc, const char* argv[])
+// {
+//     if (argc != 3) {
+//         MNN_PRINT("Usage: ./CtdetMobilenetV2Lite.out pascal_mobilenetv2_384_sigmoid_pool.mnn StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
+//         return 0;
+//     }
+//     std::string image_name = argv[2];
+//     std::string model_name = argv[1];
+//     Detector detector;
+//     auto tic = getTimeInUs();
+//     detector.init(model_name);
+//     auto toc = getTimeInUs();
+//     printf("init costs: %8.3fms\n", (toc - tic) / 1000.0f);
+//     detector.detect(image_name);
+//     return 0;
+// }
 
