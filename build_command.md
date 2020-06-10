@@ -398,16 +398,55 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 --MNNModel mobilenetv2litehead_256x320.mnn \
 --bizCode MNN \
 --debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ssd_mobilenet_v2_multiple_run23_5_0427.onnx \
+--MNNModel ssd_mobilenet_v2_multiple_run23_5_0427.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv2litehead_256x320-softmax.onnx \
+--MNNModel mobilenetv2litehead_256x320-softmax.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilev2_baiguang_256x320.onnx \
+--MNNModel ctdet_mobilev2_baiguang_256x320.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilev2_baiguang_288x384.onnx \
+--MNNModel ctdet_mobilev2_baiguang_288x384.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilev2_ir_288x384.onnx \
+--MNNModel ctdet_mobilev2_ir_288x384.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilev2_ir_256x320.onnx \
+--MNNModel ctdet_mobilev2_ir_256x320.mnn \
+--bizCode MNN \
+--debug true
+
 ```
 
 ```
 ./CtdetMobilenetV2Lite.out /workspace/centernet/models/mobilenetv2litehead_384x512.mnn /workspace/centernet/data/baiguang/images/StereoVision_L_10177074_17_0_1_7084.jpeg
 
-./CtdetMobilenetV2Lite.out /workspace/centernet/models/mobilenetv2litehead_384x512.mnn /workspace/downloads/rockrobo_data/det_testset/neice_final/VOC2007/JPEGImages/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg
+./CtdetMobilenetV2Lite.out /workspace/centernet/models/mobilenetv2litehead_256x320.mnn /workspace/downloads/rockrobo_data/det_testset/neice_final/VOC2007/JPEGImages/StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg
 
 ./NeiceTest.out /workspace/centernet/models/mobilenetv2litehead_384x512.mnn /workspace/centernet/data/baiguang/annotations/baiguang_val.json /workspace/centernet/data/baiguang/images/ /workspace/Object-Detection-Evaluation/mnn-baiguang.txt
 
 ./NeiceTest.out /workspace/centernet/models/mobilenetv2litehead_192x256.mnn /workspace/centernet/data/baiguang/annotations/baiguang_val.json /workspace/centernet/data/baiguang/images/ /workspace/Object-Detection-Evaluation/mnn-baiguang.txt
 
 ./NeiceTest.out /workspace/centernet/models/mobilenetv2litehead_256x320.mnn /workspace/centernet/data/baiguang/annotations/baiguang_val.json /workspace/centernet/data/baiguang/images/ /workspace/Object-Detection-Evaluation/mnn-baiguang.txt
+
+./NeiceTest.out /workspace/centernet/models/mobilenetv2litehead_240x320.mnn /workspace/centernet/data/baiguang/annotations/baiguang_val.json /workspace/centernet/data/baiguang/images/ /workspace/Object-Detection-Evaluation/mnn-baiguang.txt
 ```

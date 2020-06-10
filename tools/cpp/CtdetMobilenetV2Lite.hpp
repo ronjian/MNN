@@ -26,12 +26,15 @@ public:
     const int power     = 0;
     const int memory    = 0;
     const int threads   = 4;
-	// const int WIDTH_SIZE = 512;
-	// const int HEIGHT_SIZE = 384;
+	// const int WIDTH_SIZE = 384;
+	// const int HEIGHT_SIZE = 288;
 	// const int PAD = 0;
 	const int WIDTH_SIZE = 320;
 	const int HEIGHT_SIZE = 256;
 	const int PAD = 8;
+	// const int WIDTH_SIZE = 320;
+	// const int HEIGHT_SIZE = 240;
+	// const int PAD = 0;
 	// const int WIDTH_SIZE = 256;
 	// const int HEIGHT_SIZE = 192;
 	// const int PAD = 0;
@@ -40,7 +43,7 @@ public:
 	const char * whTensorID = "wh";
     const char * regTensorID = "reg";
     const double scale = 4.0f;
-    const int C = 28;
+    const int C = 29;
     const int H = HEIGHT_SIZE / scale;
     const int W = WIDTH_SIZE / scale;
     const float scoreThreshold = 0.1f;

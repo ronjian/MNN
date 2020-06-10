@@ -1,10 +1,10 @@
 
 #include "core/Backend.hpp"
-// #include "revertMNNModel.hpp"
+#include "revertMNNModel.hpp"
 #include <MNN/Interpreter.hpp>
 #include <MNN/MNNDefine.h>
 #include <MNN/Tensor.hpp>
-#include "revertMNNModel.hpp"
+// #include "revertMNNModel.hpp"
 #include <iostream>
 #include <sys/time.h>
 #include <vector>
@@ -33,6 +33,36 @@ static inline uint64_t getTimeInUs() {
     return time;
 }
 
+const float baiguangScoreMap[29] = {0.43
+                            ,0.25
+                            ,0.43
+                            ,0.50
+                            ,0.55
+                            ,0.40
+                            ,0.50
+                            ,0.28
+                            ,0.32
+                            ,0.33
+                            ,0.5
+                            ,0.38
+                            ,0.35
+                            ,0.37
+                            ,0.31
+                            ,0.44
+                            ,0.34
+                            ,0.39
+                            ,0.38
+                            ,0.16
+                            ,0.25
+                            ,0.26
+                            ,0.27
+                            ,0.21
+                            ,0.33
+                            ,0.46
+                            ,0.30
+                            ,0.45
+                            ,0.33};
+
 Detector::Detector()
 {
 }
@@ -45,12 +75,13 @@ int Detector::init(std::string model_path)
 {
     std::cout << "model_path:" << model_path << ",HEIGHT_SIZE:" << HEIGHT_SIZE << ",WIDTH_SIZE:" << WIDTH_SIZE << std::endl;
     auto tic = getTimeInUs();
-    auto revertor = std::unique_ptr<Revert>(new Revert(model_path.c_str()));
-    revertor->initialize();
-    auto modelBuffer      = revertor->getBuffer();
-    auto bufferSize = revertor->getBufferSize();
-    net = std::shared_ptr<MNN::Interpreter>(MNN::Interpreter::createFromBuffer(modelBuffer, bufferSize));
-    revertor.reset();
+    // auto revertor = std::unique_ptr<Revert>(new Revert(model_path.c_str()));
+    // revertor->initialize();
+    // auto modelBuffer      = revertor->getBuffer();
+    // auto bufferSize = revertor->getBufferSize();
+    // net = std::shared_ptr<MNN::Interpreter>(MNN::Interpreter::createFromBuffer(modelBuffer, bufferSize));
+    // revertor.reset();
+    net = std::shared_ptr<MNN::Interpreter>(MNN::Interpreter::createFromFile(model_path.c_str()));
     printf("create net costs: %8.3fms\n", (getTimeInUs() - tic) / 1000.0f);
     tic = getTimeInUs();
 
@@ -79,6 +110,7 @@ int Detector::init(std::string model_path)
 }
 
 int Detector::preProcess(std::string image_path) {
+    std::cout << "image_path: " << image_path << std::endl;
     /* PRE-PROCESS */
     printf("0\n");
     const cv::Mat mean(HEIGHT_SIZE, WIDTH_SIZE, CV_32FC3, meanValue);
@@ -97,7 +129,7 @@ int Detector::preProcess(std::string image_path) {
     printf("6\n");
     cv::Mat image;
     affinedImage.convertTo(image, CV_32FC3);
-    cv::imwrite("pre-inference.jpg", affinedImage);
+    // cv::imwrite("pre-inference.jpg", affinedImage);
     printf("7\n");
     std::cout << image.size() << std::endl;
     std::cout << mean.size() << std::endl;
@@ -147,6 +179,7 @@ int Detector::decode(std::vector<ObjInfo>& objs_tmp) {
             for (int w = 0; w < W; w++) {
                 float score = hm_dataPtr[c * H * W + h * W + w];
                 if (score > scoreThreshold && score == hmpool_dataPtr[c * H * W + h * W + w]) {
+                // if (score > baiguangScoreMap[c] && score == hmpool_dataPtr[c * H * W + h * W + w]) {
                     ObjInfo objbox;
                     objbox.label = c;
                     objbox.score = score;
@@ -284,7 +317,7 @@ int Detector::detect(std::string image_path) {
 // int main(int argc, const char* argv[])
 // {
 //     if (argc != 3) {
-//         MNN_PRINT("Usage: ./CtdetMobilenetV2Lite.out pascal_mobilenetv2_384_sigmoid_pool.mnn StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
+//         MNN_PRINT("Usage: ./CtdetMobilenetV2Lite.out mobilenetv2litehead_256x320.mnn StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
 //         return 0;
 //     }
 //     std::string image_name = argv[2];
