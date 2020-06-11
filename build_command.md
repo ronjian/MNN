@@ -12,8 +12,8 @@ cd build;
 cmake .. -DMNN_BUILD_DEMO=on \
  -DCMAKE_BUILD_TYPE=Release \
  -DMNN_BUILD_TOOLS=on \
- -DMNN_BUILD_QUANTOOLS=on \
- -DMNN_BUILD_CONVERTER=on \
+ -DMNN_BUILD_QUANTOOLS=off \
+ -DMNN_BUILD_CONVERTER=off \
  -DMNN_SUPPORT_TFLITE_QUAN=off \
  -DMNN_DEBUG_MEMORY=off \
  -DMNN_DEBUG_TENSOR_SIZE=off \
@@ -432,6 +432,12 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 $MNN_HOME/build/MNNConvert -f ONNX \
 --modelFile ctdet_mobilev2_ir_256x320.onnx \
 --MNNModel ctdet_mobilev2_ir_256x320.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilev2_baiguang_384x512.onnx \
+--MNNModel ctdet_mobilev2_baiguang_384x512.mnn \
 --bizCode MNN \
 --debug true
 

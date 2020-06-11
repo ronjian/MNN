@@ -33,35 +33,35 @@ static inline uint64_t getTimeInUs() {
     return time;
 }
 
-const float baiguangScoreMap[29] = {0.43
-                            ,0.25
-                            ,0.43
-                            ,0.50
-                            ,0.55
-                            ,0.40
-                            ,0.50
-                            ,0.28
-                            ,0.32
-                            ,0.33
-                            ,0.5
-                            ,0.38
-                            ,0.35
-                            ,0.37
-                            ,0.31
-                            ,0.44
-                            ,0.34
-                            ,0.39
-                            ,0.38
-                            ,0.16
-                            ,0.25
-                            ,0.26
-                            ,0.27
-                            ,0.21
-                            ,0.33
-                            ,0.46
-                            ,0.30
-                            ,0.45
-                            ,0.33};
+const float baiguangScoreMap[29] = {0.23
+                          ,0.16
+                          ,0.19
+                          ,0.15
+                          ,0.27
+                          ,0.19
+                          ,0.1
+                          ,0.13
+                          ,0.18
+                          ,0.21
+                          , 0.1
+                          ,0.22
+                          ,0.24
+                          ,0.2
+                          ,0.19
+                          ,0.25
+                          ,0.1
+                          ,0.2
+                          ,0.14
+                          ,0.1
+                          ,0.25
+                          ,0.1
+                          ,0.12
+                          ,0.13
+                          ,0.11
+                          ,0.15
+                          ,0.2
+                          ,0.21
+                          ,0.2};
 
 Detector::Detector()
 {
@@ -134,7 +134,12 @@ int Detector::preProcess(std::string image_path) {
     std::cout << image.size() << std::endl;
     std::cout << mean.size() << std::endl;
     std::cout << std.size() << std::endl;
+    // cv::imwrite("/workspace/centernet/results/test_result/mnn-preprocess.jpg", image);
+    
+    // image = cv::imread("/workspace/centernet/results/test_result/preprocess.jpg");
+    // image.convertTo(image, CV_32FC3);
     image = (image / 255.0f - mean) / std;
+    // cv::imwrite("/workspace/centernet/results/test_result/mnn-xxx.jpg", image);
     printf("8\n");
     auto tic = getTimeInUs();
     ::memcpy(nhwc_Tensor->host<float>(), image.data, nhwc_Tensor->size());
@@ -178,8 +183,8 @@ int Detector::decode(std::vector<ObjInfo>& objs_tmp) {
         for (int h = 0; h < H; h++) {
             for (int w = 0; w < W; w++) {
                 float score = hm_dataPtr[c * H * W + h * W + w];
-                if (score > scoreThreshold && score == hmpool_dataPtr[c * H * W + h * W + w]) {
-                // if (score > baiguangScoreMap[c] && score == hmpool_dataPtr[c * H * W + h * W + w]) {
+                if (score > baiguangScoreMap[c] && score == hmpool_dataPtr[c * H * W + h * W + w]) {
+                // if (score > 0.05 && score == hmpool_dataPtr[c * H * W + h * W + w]) {
                     ObjInfo objbox;
                     objbox.label = c;
                     objbox.score = score;

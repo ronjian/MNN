@@ -29,9 +29,12 @@ public:
 	// const int WIDTH_SIZE = 384;
 	// const int HEIGHT_SIZE = 288;
 	// const int PAD = 0;
-	const int WIDTH_SIZE = 320;
-	const int HEIGHT_SIZE = 256;
-	const int PAD = 8;
+	const int WIDTH_SIZE = 512;
+	const int HEIGHT_SIZE = 384;
+	const int PAD = 0;
+	// const int WIDTH_SIZE = 320;
+	// const int HEIGHT_SIZE = 256;
+	// const int PAD = 8;
 	// const int WIDTH_SIZE = 320;
 	// const int HEIGHT_SIZE = 240;
 	// const int PAD = 0;
