@@ -33,36 +33,64 @@ static inline uint64_t getTimeInUs() {
     return time;
 }
 
-const float baiguangScoreMap[29] = {0.23
-                          ,0.16
-                          ,0.19
-                          ,0.15
-                          ,0.27
-                          ,0.19
-                          ,0.1
-                          ,0.13
-                          ,0.18
-                          ,0.21
-                          , 0.1
-                          ,0.22
-                          ,0.24
-                          ,0.2
-                          ,0.19
-                          ,0.25
-                          ,0.1
-                          ,0.2
-                          ,0.14
-                          ,0.1
-                          ,0.25
-                          ,0.1
-                          ,0.12
-                          ,0.13
-                          ,0.11
-                          ,0.15
-                          ,0.2
-                          ,0.21
-                          ,0.2};
-
+// const float baiguangScoreMap[29] = {0.23
+//                           ,0.16
+//                           ,0.19
+//                           ,0.15
+//                           ,0.27
+//                           ,0.19
+//                           ,0.1
+//                           ,0.13
+//                           ,0.18
+//                           ,0.21
+//                           , 0.1
+//                           ,0.22
+//                           ,0.24
+//                           ,0.2
+//                           ,0.19
+//                           ,0.25
+//                           ,0.1
+//                           ,0.2
+//                           ,0.14
+//                           ,0.1
+//                           ,0.25
+//                           ,0.1
+//                           ,0.12
+//                           ,0.13
+//                           ,0.11
+//                           ,0.15
+//                           ,0.2
+//                           ,0.21
+//                           ,0.2};
+const float baiguangScoreMap[29] = {0.17
+                                    ,0.13
+                                    ,0.14
+                                    ,0.2
+                                    ,0.23
+                                    ,0.162
+                                    ,0.1
+                                    ,0.118
+                                    ,0.235
+                                    ,0.1468
+                                    ,0.1
+                                    ,0.18
+                                    ,0.1
+                                    ,0.15
+                                    ,0.13
+                                    ,0.13
+                                    ,0.1
+                                    ,0.2
+                                    ,0.15
+                                    ,0.12
+                                    ,0.12
+                                    ,0.1
+                                    ,0.134
+                                    ,0.13
+                                    ,0.11
+                                    ,0.1
+                                    ,0.15
+                                    ,0.12
+                                    ,0.25};
 Detector::Detector()
 {
 }
@@ -179,29 +207,34 @@ int Detector::decode(std::vector<ObjInfo>& objs_tmp) {
     auto reg_dataPtr  = reg_host.host<float>();
     
     int idx = 0;
+    int csum = 0;
     for (int c = 0; c < C; c++){
         for (int h = 0; h < H; h++) {
             for (int w = 0; w < W; w++) {
                 float score = hm_dataPtr[c * H * W + h * W + w];
+                // if (score > 0.1){
+                //     csum++;
+                //     std::cout << idx << "," << score << std::endl;
+                // }
                 if (score > baiguangScoreMap[c] && score == hmpool_dataPtr[c * H * W + h * W + w]) {
-                // if (score > 0.05 && score == hmpool_dataPtr[c * H * W + h * W + w]) {
                     ObjInfo objbox;
                     objbox.label = c;
                     objbox.score = score;
                     int refIdx = h * W + w;
                     float centerX = w;
                     float centerY = h;
-                    std::cout << "w:" << w << ", h:" << h << ", score:" << objbox.score << ", label:" << objbox.label << std::endl;
+                    // std::cout << "w:" << w << ", h:" << h << ", score:" << objbox.score << ", label:" << objbox.label << std::endl;
                     cv::circle(affinedImage, cv::Point(w * 4.0, h * 4.0), 1, cv::Scalar(0,255,0), 2);
                     float xReg = reg_dataPtr[refIdx];
                     float yReg = reg_dataPtr[refIdx + H * W];
                     float width = wh_dataPtr[refIdx];
                     float height = wh_dataPtr[refIdx + H * W];
+                    std::cout << "xReg:" << xReg << ",yReg:" << yReg << ",width:" << width << ",height:" << height << std::endl;
                     objbox.x1 = ((centerX + xReg) - width / 2.0f) * scale;
                     objbox.y1 = ((centerY + yReg) - height / 2.0f) * scale;
                     objbox.x2 = ((centerX + xReg) + width / 2.0f) * scale;
                     objbox.y2 = ((centerY + yReg) + height / 2.0f) * scale;
-                    // std::cout << "score: " << objbox.score << ", label: " << objbox.label << ", x1: " << objbox.x1 << ", x2: " << objbox.x2 << ", y1: " << objbox.y1 << ", y2: " << objbox.y2 << std::endl;
+                    std::cout << "score: " << objbox.score << ", label: " << objbox.label << ", x1: " << objbox.x1 << ", x2: " << objbox.x2 << ", y1: " << objbox.y1 << ", y2: " << objbox.y2 << std::endl;
                     objbox.area=(objbox.x2 - objbox.x1) * (objbox.y2 - objbox.y1);
                     objs_tmp.push_back(objbox);
                 }
@@ -209,72 +242,73 @@ int Detector::decode(std::vector<ObjInfo>& objs_tmp) {
             }
         }
     }
+    std::cout << "csum: " << csum << std::endl;
     return 0;
 }
 
-int Detector::nms(std::vector<ObjInfo>& input, std::vector<ObjInfo>& output, float nmsthreshold, int type) {
-    // std::cout << "input size " << input.size() << std::endl;
-    output.clear();
-	if (input.empty()) {
-		return 1;
-	}
-	std::sort(input.begin(), input.end(),
-		[](const ObjInfo& a, const ObjInfo& b)
-		{
-			return a.score < b.score;
-		});
-    // std::cout << "complete sort" << std::endl;
-	float IOU = 0;
-	float maxX = 0;
-	float maxY = 0;
-	float minX = 0;
-	float minY = 0;
-	std::vector<int> vPick;
-	int nPick = 0;
-	std::multimap<float, int> vScores;
-	const int num_boxes = input.size();
-	vPick.resize(num_boxes);
-	for (int i = 0; i < num_boxes; ++i) {
-		vScores.insert(std::pair<float, int>(input[i].score, i));
-	}
-    // std::cout << "before loop" << std::endl;
-	while (vScores.size() > 0) {
-		int last = vScores.rbegin()->second;
-		vPick[nPick] = last;
-		nPick += 1;
-		for (std::multimap<float, int>::iterator it = vScores.begin(); it != vScores.end();) {
-			int it_idx = it->second;
-			maxX = std::max(input.at(it_idx).x1, input.at(last).x1);
-			maxY = std::max(input.at(it_idx).y1, input.at(last).y1);
-			minX = std::min(input.at(it_idx).x2, input.at(last).x2);
-			minY = std::min(input.at(it_idx).y2, input.at(last).y2);
-			//maxX1 and maxY1 reuse 
-			maxX = ((minX - maxX + 0.001) > 0) ? (minX - maxX + 0.001) : 0;
-			maxY = ((minY - maxY + 0.001) > 0) ? (minY - maxY + 0.001) : 0;
-			//IOU reuse for the area of two bbox
-			IOU = maxX * maxY;
-			if (type == NMS_UNION)
-				IOU = IOU / (input.at(it_idx).area + input.at(last).area - IOU);
-			else if (type == NMS_MIN) {
-				IOU = IOU / ((input.at(it_idx).area < input.at(last).area) ? input.at(it_idx).area : input.at(last).area);
-			}
-			if (IOU > nmsthreshold) {
-				it = vScores.erase(it);
-			}
-			else {
-				it++;
-			}
-		}
-	}
-    // std::cout << "after loop" << std::endl;
-	vPick.resize(nPick);
-	output.resize(nPick);
-    // std::cout << "after resize" << std::endl;
-	for (int i = 0; i < nPick; i++) {
-		output[i] = input[vPick[i]];
-	}
-    return 0;
-}
+// int Detector::nms(std::vector<ObjInfo>& input, std::vector<ObjInfo>& output, float nmsthreshold, int type) {
+//     // std::cout << "input size " << input.size() << std::endl;
+//     output.clear();
+// 	if (input.empty()) {
+// 		return 1;
+// 	}
+// 	std::sort(input.begin(), input.end(),
+// 		[](const ObjInfo& a, const ObjInfo& b)
+// 		{
+// 			return a.score < b.score;
+// 		});
+//     // std::cout << "complete sort" << std::endl;
+// 	float IOU = 0;
+// 	float maxX = 0;
+// 	float maxY = 0;
+// 	float minX = 0;
+// 	float minY = 0;
+// 	std::vector<int> vPick;
+// 	int nPick = 0;
+// 	std::multimap<float, int> vScores;
+// 	const int num_boxes = input.size();
+// 	vPick.resize(num_boxes);
+// 	for (int i = 0; i < num_boxes; ++i) {
+// 		vScores.insert(std::pair<float, int>(input[i].score, i));
+// 	}
+//     // std::cout << "before loop" << std::endl;
+// 	while (vScores.size() > 0) {
+// 		int last = vScores.rbegin()->second;
+// 		vPick[nPick] = last;
+// 		nPick += 1;
+// 		for (std::multimap<float, int>::iterator it = vScores.begin(); it != vScores.end();) {
+// 			int it_idx = it->second;
+// 			maxX = std::max(input.at(it_idx).x1, input.at(last).x1);
+// 			maxY = std::max(input.at(it_idx).y1, input.at(last).y1);
+// 			minX = std::min(input.at(it_idx).x2, input.at(last).x2);
+// 			minY = std::min(input.at(it_idx).y2, input.at(last).y2);
+// 			//maxX1 and maxY1 reuse 
+// 			maxX = ((minX - maxX + 0.001) > 0) ? (minX - maxX + 0.001) : 0;
+// 			maxY = ((minY - maxY + 0.001) > 0) ? (minY - maxY + 0.001) : 0;
+// 			//IOU reuse for the area of two bbox
+// 			IOU = maxX * maxY;
+// 			if (type == NMS_UNION)
+// 				IOU = IOU / (input.at(it_idx).area + input.at(last).area - IOU);
+// 			else if (type == NMS_MIN) {
+// 				IOU = IOU / ((input.at(it_idx).area < input.at(last).area) ? input.at(it_idx).area : input.at(last).area);
+// 			}
+// 			if (IOU > nmsthreshold) {
+// 				it = vScores.erase(it);
+// 			}
+// 			else {
+// 				it++;
+// 			}
+// 		}
+// 	}
+//     // std::cout << "after loop" << std::endl;
+// 	vPick.resize(nPick);
+// 	output.resize(nPick);
+//     // std::cout << "after resize" << std::endl;
+// 	for (int i = 0; i < nPick; i++) {
+// 		output[i] = input[vPick[i]];
+// 	}
+//     return 0;
+// }
 
 int Detector::detect(std::string image_path) {
     /* PRE-PROCESS */
@@ -322,7 +356,7 @@ int Detector::detect(std::string image_path) {
 // int main(int argc, const char* argv[])
 // {
 //     if (argc != 3) {
-//         MNN_PRINT("Usage: ./CtdetMobilenetV2Lite.out mobilenetv2litehead_256x320.mnn StereoVision_L_803031_-10_0_0_6821_D_Shoe_714_-1080_Shoe_659_-971.jpeg\n");
+//         MNN_PRINT("Usage: ./CtdetMobilenetV2Lite.out /workspace/centernet/models/ctdet_mobilenetv3_magicv3.mnn /workspace/centernet/data/baiguang/images/val/StereoVision_L_923461_9_0_1_11250_D_Shoe_4945_-1249.jpeg\n");
 //         return 0;
 //     }
 //     std::string image_name = argv[2];

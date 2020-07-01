@@ -26,7 +26,7 @@ namespace patch
 int main(int argc, const char* argv[])
 {
     if (argc != 5) {
-        MNN_PRINT("Usage: ./NeiceTest.out /workspace/centernet/models/ctdet_mobilev2_baiguang_384x512.mnn /workspace/centernet/data/baiguang/annotations/baiguang_val.json /workspace/centernet/data/baiguang/images/val/ /workspace/Object-Detection-Evaluation/baigguang-384x512.txt\n");
+        MNN_PRINT("Usage: ./NeiceTest.out /workspace/centernet/models/ctdet_185_61.mnn /workspace/centernet/data/baiguang/annotations/baiguang_val.json /workspace/centernet/data/baiguang/images/val/ /workspace/Object-Detection-Evaluation/baigguang-288x384.txt\n");
         return 0;
     }
     string modelPath = argv[1];
@@ -59,32 +59,32 @@ int main(int argc, const char* argv[])
     string imgName;
     for (auto& img : D["images"].GetArray()) {
         imgName = img["file_name"].GetString();
-        // imgDir = "/workspace/centernet/data/test/";
-        // imgName = "StereoVision_L_999261_2_0_0_13340_D_Shoe_572_760_Shoe_339_697.jpeg";
-        cout << imgName << endl;
-        // detector.visImg = "/workspace/centernet/results/test_result/mnn-result.jpg";
-        detector.detect(imgDir + imgName);
-        if (detector.dets.size() > 0) {
-            line = imgDir + imgName;
-            for (auto det: detector.dets) {
-                x0 = (int) (det.x1 * xscale);
-                y0 = (int) ((det.y1 - detector.PAD) * yscale);
-                // y0 = (int) (det.y1 * yscale);
-                x1 = (int) (det.x2 * xscale);
-                y1 = (int) ((det.y2 - detector.PAD) * yscale);
-                // y1 = (int) (det.y2 * yscale);
-                category_id = (int) det.label + 1;
-                score = det.score;
-                line += " " + patch::to_string(x0) + ",";
-                line += patch::to_string(y0) + ",";
-                line += patch::to_string(x1) + ",";
-                line += patch::to_string(y1) + ","; 
-                line += patch::to_string(category_id) + ",";
-                line += patch::to_string(score);
+        // if (imgName == "StereoVision_L_923461_9_0_1_11250_D_Shoe_4945_-1249.jpeg") {
+        if (1 == 1) {
+            cout << imgName << endl;
+            detector.detect(imgDir + imgName);
+            if (detector.dets.size() > 0) {
+                line = imgDir + imgName;
+                for (auto det: detector.dets) {
+                    x0 = (int) (det.x1 * xscale);
+                    y0 = (int) ((det.y1 - detector.PAD) * yscale);
+                    // y0 = (int) (det.y1 * yscale);
+                    x1 = (int) (det.x2 * xscale);
+                    y1 = (int) ((det.y2 - detector.PAD) * yscale);
+                    // y1 = (int) (det.y2 * yscale);
+                    category_id = (int) det.label + 1;
+                    score = det.score;
+                    line += " " + patch::to_string(x0) + ",";
+                    line += patch::to_string(y0) + ",";
+                    line += patch::to_string(x1) + ",";
+                    line += patch::to_string(y1) + ","; 
+                    line += patch::to_string(category_id) + ",";
+                    line += patch::to_string(score);
+                }
+                outfile << line << endl;
             }
-            outfile << line << endl;
         }
-        // break;
+
     }
     outfile.close();
     return 0;

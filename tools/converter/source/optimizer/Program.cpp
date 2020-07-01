@@ -14,6 +14,7 @@ using namespace MNN::Express;
 using namespace MNN;
 #define UP_DIV(x) (((x) + 3) / 4)
 #include "MNN_generated.h"
+#include <iostream>
 namespace MNN {
 namespace Express {
 
@@ -401,8 +402,32 @@ std::shared_ptr<Program> Program::create(const MNN::NetT* net, bool supportExtra
     std::vector<int> inputIndexes;
     std::vector<OpT*> extraOps;
     std::vector<OpT*> allOps;
+    std::vector<int> skipOpsIdxs;
     for (int index = 0; index < net->oplists.size(); ++index) {
         auto op = net->oplists[index].get();
+        if (op->type == OpType_ReLU6){
+            std::cout <<  "name:" << op->name <<  ",type:" << op->type << ",idx:" << index << std::endl;
+            auto pop = net->oplists[index-1].get(); 
+            auto ppop = net->oplists[index-2].get();
+            if (pop->type == OpType_Const && ppop->type == OpType_Const){
+                skipOpsIdxs.push_back(index-2);
+                skipOpsIdxs.push_back(index-1);
+            }
+        }
+    }
+    for (int i =0 ; i < skipOpsIdxs.size() ; i++){
+        std::cout << skipOpsIdxs[i] << ",";
+    }
+    std::cout << "" << std::endl;
+
+    for (int index = 0; index < net->oplists.size(); ++index) {
+        auto op = net->oplists[index].get();
+        if ( std::find(skipOpsIdxs.begin(), skipOpsIdxs.end(), index) != skipOpsIdxs.end() ){
+            std::cout << "skipping op: " << op->name << std::endl;
+            continue;
+        }
+        // std::cout <<  "name:" << op->name <<  ",type:" << op->type << std::endl;
+        std::cout <<  "name:" << op->name <<  ",type:" << op->type << ",idx:" << index << std::endl;
         if (_isControlOp(op)) {
             extraOps.emplace_back(op);
             continue;

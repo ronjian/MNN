@@ -6,19 +6,19 @@ mkdir build
 cd build
 ```
 
-build for x86, with debug
+build for x86
 ```shell
 cd build;
-cmake .. -DMNN_BUILD_DEMO=on \
- -DCMAKE_BUILD_TYPE=Release \
- -DMNN_BUILD_TOOLS=on \
+cmake .. -DMNN_BUILD_DEMO=debug \
+ -DCMAKE_BUILD_TYPE=debug \
+ -DMNN_BUILD_TOOLS=off \
  -DMNN_BUILD_QUANTOOLS=off \
- -DMNN_BUILD_CONVERTER=off \
+ -DMNN_BUILD_CONVERTER=on \
  -DMNN_SUPPORT_TFLITE_QUAN=off \
  -DMNN_DEBUG_MEMORY=off \
  -DMNN_DEBUG_TENSOR_SIZE=off \
  -DMNN_BUILD_BENCHMARK=on \
- -DMNN_OPENCL=off \
+ -DMNN_OPENCL=on \
  -DMNN_USE_SYSTEM_LIB=on \
  -DMNN_SEP_BUILD=false;
 make -j$(nproc)
@@ -45,7 +45,7 @@ build for mr813
 ```shell
 cd buildmr813
 cmake .. -DCMAKE_TOOLCHAIN_FILE=../arm-linux-gnueabi-mr813.cmake \
--DCMAKE_BUILD_TYPE=Release \
+-DCMAKE_BUILD_TYPE=release \
 -DMNN_BUILD_DEMO=off \
 -DMNN_BUILD_QUANTOOLS=off \
 -DMNN_EVALUATION=off \
@@ -54,7 +54,7 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE=../arm-linux-gnueabi-mr813.cmake \
 -DMNN_BUILD_BENCHMARK=true \
 -DMNN_BUILD_TEST=off \
 -DMNN_OPENCL=on \
--DMNN_VULKAN=on \
+-DMNN_VULKAN=off \
 -DMNN_BUILD_TOOLS=on
 make -j$(nproc)
 ```
@@ -277,6 +277,25 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 --debug true
 
 $MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilenetv3_magic-v0.onnx \
+--MNNModel ctdet_mobilenetv3_magic-v0.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilenetv3_magic-v3.onnx \
+--MNNModel ctdet_mobilenetv3_magic-v3.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilenetv3_magicv3.onnx \
+--MNNModel ctdet_mobilenetv3_magicv3-test.mnn \
+--bizCode MNN \
+--debug true > test.log
+
+
+$MNN_HOME/build/MNNConvert -f ONNX \
 --modelFile u2netp.onnx \
 --MNNModel u2netp.mnn \
 --bizCode MNN \
@@ -412,6 +431,13 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 --debug true
 
 $MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilev2liteheadrelu_288x384.onnx \
+--MNNModel ctdet_mobilev2liteheadrelu_288x384.mnn \
+--bizCode MNN \
+--debug true
+
+
+$MNN_HOME/build/MNNConvert -f ONNX \
 --modelFile ctdet_mobilev2_baiguang_256x320.onnx \
 --MNNModel ctdet_mobilev2_baiguang_256x320.mnn \
 --bizCode MNN \
@@ -420,6 +446,12 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 $MNN_HOME/build/MNNConvert -f ONNX \
 --modelFile ctdet_mobilev2_baiguang_288x384.onnx \
 --MNNModel ctdet_mobilev2_baiguang_288x384.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilev2_baiguang_288x384-bilinear.onnx \
+--MNNModel ctdet_mobilev2_baiguang_288x384-bilinear.mnn \
 --bizCode MNN \
 --debug true
 
@@ -441,6 +473,106 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 --bizCode MNN \
 --debug true
 
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilenetv3_384x512.onnx \
+--MNNModel ctdet_mobilenetv3_384x512.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilenetv3_magicv2.onnx \
+--MNNModel ctdet_mobilenetv3_magicv2.mnn \
+--bizCode MNN \
+--debug true
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilenetv3_magicv3.onnx \
+--MNNModel ctdet_mobilenetv3_magicv3.mnn \
+--bizCode MNN \
+--debug true
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilenetv3_magicv4.onnx \
+--MNNModel ctdet_mobilenetv3_magicv4.mnn \
+--bizCode MNN \
+--debug true
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilenetv3_magicv5.onnx \
+--MNNModel ctdet_mobilenetv3_magicv5.mnn \
+--bizCode MNN \
+--debug true
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mnasnet0_5.onnx \
+--MNNModel mnasnet0_5.mnn \
+--bizCode MNN \
+--debug true
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mnasnet0_75.onnx \
+--MNNModel mnasnet0_75.mnn \
+--bizCode MNN \
+--debug true
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mnasnet1_0.onnx \
+--MNNModel mnasnet1_0.mnn \
+--bizCode MNN \
+--debug true
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mnasnet1_3.onnx \
+--MNNModel mnasnet1_3.mnn \
+--bizCode MNN \
+--debug true
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenet_v2.onnx \
+--MNNModel mobilenet_v2.mnn \
+--bizCode MNN \
+--debug true
+cd /workspace/mobilenetv3_centernet/model/mscoco_mbv3_0.75
+$MNN_HOME/build/MNNConvert -f TF \
+--modelFile detector.pb \
+--MNNModel mscoco_mbv3_0.75.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile transconv.onnx \
+--MNNModel transconv.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile mobilenetv2liteheadnas_120.onnx \
+--MNNModel mobilenetv2liteheadnas_120.mnn \
+--bizCode MNN \
+--debug true
+
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilenetv3_magicv7.onnx \
+--MNNModel ctdet_mobilenetv3_magicv7.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilenetv3_magicv8.onnx \
+--MNNModel ctdet_mobilenetv3_magicv8.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilenetv3_magicv9.onnx \
+--MNNModel ctdet_mobilenetv3_magicv9.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_185_61.onnx \
+--MNNModel ctdet_185_61.mnn \
+--bizCode MNN \
+--debug true
+
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilenetv3_magicv10.onnx \
+--MNNModel ctdet_mobilenetv3_magicv10.mnn \
+--bizCode MNN \
+--debug true
 ```
 
 ```

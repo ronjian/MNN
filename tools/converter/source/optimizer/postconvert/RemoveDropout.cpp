@@ -23,6 +23,7 @@ public:
         if (std::find(unuseOpType.begin(), unuseOpType.end(), op->type) != unuseOpType.end()) {
             return true;
         }
+        
         if (op->type == OpType_Extra) {
             if (std::find(unuseExtraOpType.begin(), unuseExtraOpType.end(), op->main.AsExtra()->type) != unuseExtraOpType.end()) {
                 return true;

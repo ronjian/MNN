@@ -90,7 +90,11 @@ std::unique_ptr<MNN::NetT> optimizeNet(std::unique_ptr<MNN::NetT>& originNet, bo
             LOG(INFO) << "Run " << pass << "Error\n";
         }
     }
-
+    for (auto iter = originNet->oplists.begin(); iter != originNet->oplists.end();) {
+        auto op = iter->get();
+        // std::cout <<"before program: " <<  op->type << std::endl;
+        iter++;
+    }
     auto program = MNN::Express::Program::create(originNet.get(), true);
     std::vector<std::string> optimizePass = {
         "Merge",
@@ -115,8 +119,9 @@ std::unique_ptr<MNN::NetT> optimizeNet(std::unique_ptr<MNN::NetT>& originNet, bo
         auto& merge  = MNN::Express::TemplateMerge::getInstance(pass);
         merge.onExecute(program->outputs());
     }
-    bool printedInputOutput = false;
+    bool printedInputOutput = true;
     if (program->needGenerateCode()) {
+        std::cout << "need generate code" << std::endl;
         _printInputOutputs(originNet.get());
         printedInputOutput = true;
         MNN_PRINT("The Model Has Control / Extra Op, Please Compile the Code of model.cpp or use model.py\n");
@@ -143,7 +148,11 @@ std::unique_ptr<MNN::NetT> optimizeNet(std::unique_ptr<MNN::NetT>& originNet, bo
         newNet->bizCode = originNet->bizCode;
         Variable::save(outputs, newNet.get());
     }
-
+    for (auto iter = newNet->oplists.begin(); iter != newNet->oplists.end();) {
+        auto op = iter->get();
+        // std::cout <<"after program: " <<  op->type << std::endl;
+        iter++;
+    }
     std::vector<std::string> afterProgramConvert = {
         // Turn BatchNormal to Scale When inference, if `forTraining` flag is set, BN will be reserved
         "TransformBatchNormal",

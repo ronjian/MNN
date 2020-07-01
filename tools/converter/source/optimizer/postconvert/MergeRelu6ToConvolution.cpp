@@ -8,12 +8,14 @@
 
 #include "../PostTreatUtils.hpp"
 #include "MergeToConvolution.hpp"
+#include <iostream>
 
 using namespace MNN;
 
 class MergeRelu6ToConvolution : public MergeToConvolution {
 public:
     bool merge2Convolution(const MNN::OpT* inplaceOp, MNN::OpT* convolutionOp) const {
+        // std::cout << inplaceOp->type << std::endl;
         if (inplaceOp->type == MNN::OpType_ReLU6) {
             convolutionOp->main.AsConvolution2D()->common->relu6 = true;
             return true;

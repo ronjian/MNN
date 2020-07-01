@@ -23,15 +23,16 @@ public:
     const int forward = MNN_FORWARD_OPENCL;
 	// const int forward = MNN_FORWARD_CPU;
     const int precision = 2;
+	// const int precision = 0;
     const int power     = 0;
     const int memory    = 0;
     const int threads   = 4;
-	// const int WIDTH_SIZE = 384;
-	// const int HEIGHT_SIZE = 288;
-	// const int PAD = 0;
-	const int WIDTH_SIZE = 512;
-	const int HEIGHT_SIZE = 384;
+	const int WIDTH_SIZE = 384;
+	const int HEIGHT_SIZE = 288;
 	const int PAD = 0;
+	// const int WIDTH_SIZE = 512;
+	// const int HEIGHT_SIZE = 384;
+	// const int PAD = 0;
 	// const int WIDTH_SIZE = 320;
 	// const int HEIGHT_SIZE = 256;
 	// const int PAD = 8;
@@ -65,7 +66,7 @@ public:
 	int detect(std::string image_path);
 	int decode(std::vector<ObjInfo>& objs_tmp);
 	// borrow from: https://github.com/ouyanghuiyu/centernet_mobilenetv2_ncnn/blob/master/cpp/ncnn_centernet.cpp
-	int nms(std::vector<ObjInfo>& input, std::vector<ObjInfo>& output, float nmsthreshold, int type);
+	// int nms(std::vector<ObjInfo>& input, std::vector<ObjInfo>& output, float nmsthreshold, int type);
 
 private: 
 	std::shared_ptr<MNN::Interpreter> net;
