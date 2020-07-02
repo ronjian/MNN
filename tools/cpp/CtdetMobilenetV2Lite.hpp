@@ -79,3 +79,13 @@ private:
 	cv::Mat affinedImage;
 
 };
+
+struct BoxCornerEncoding
+{
+  float ymin;
+  float xmin;
+  float ymax;
+  float xmax;
+};
+typedef std::vector<BoxCornerEncoding> PredictBoxes;
+typedef std::vector<float> PredictScores;

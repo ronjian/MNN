@@ -32,71 +32,145 @@ static inline uint64_t getTimeInUs() {
 #endif
     return time;
 }
-
-// const float baiguangScoreMap[29] = {0.23
-//                           ,0.16
-//                           ,0.19
-//                           ,0.15
-//                           ,0.27
-//                           ,0.19
-//                           ,0.1
-//                           ,0.13
-//                           ,0.18
-//                           ,0.21
-//                           , 0.1
-//                           ,0.22
-//                           ,0.24
-//                           ,0.2
-//                           ,0.19
-//                           ,0.25
-//                           ,0.1
-//                           ,0.2
-//                           ,0.14
-//                           ,0.1
-//                           ,0.25
-//                           ,0.1
-//                           ,0.12
-//                           ,0.13
-//                           ,0.11
-//                           ,0.15
-//                           ,0.2
-//                           ,0.21
-//                           ,0.2};
-const float baiguangScoreMap[29] = {0.17
-                                    ,0.13
-                                    ,0.14
+const float baiguangScoreMap[29] = {0.22
+                                    ,0.08
+                                    ,0.27
+                                    ,0.17
+                                    ,0.33
+                                    ,0.21
+                                    ,0.3
+                                    ,0.22
                                     ,0.2
-                                    ,0.23
-                                    ,0.162
+                                    ,0.21
+                                    ,0.3
+                                    ,0.25
                                     ,0.1
-                                    ,0.118
-                                    ,0.235
-                                    ,0.1468
-                                    ,0.1
-                                    ,0.18
-                                    ,0.1
-                                    ,0.15
-                                    ,0.13
-                                    ,0.13
-                                    ,0.1
+                                    ,0.19
+                                    ,0.22
                                     ,0.2
-                                    ,0.15
+                                    ,0.3
+                                    ,0.25
+                                    ,0.2
                                     ,0.12
+                                    ,0.22
+                                    ,0.3
                                     ,0.12
-                                    ,0.1
-                                    ,0.134
-                                    ,0.13
                                     ,0.11
-                                    ,0.1
+                                    ,0.14
                                     ,0.15
-                                    ,0.12
-                                    ,0.25};
+                                    ,0.08
+                                    ,0.22
+                                    ,0.13};
 Detector::Detector()
 {
 }
 
 Detector::~Detector()
 {
+}
+
+template <typename T>
+std::vector<size_t>
+argsort_descend(const std::vector<T>& v)
+{
+  std::vector<size_t> indices(v.size());
+
+  size_t n = 0;
+  std::generate(indices.begin(), indices.end(), [&n] { return n++; });
+
+  std::sort(indices.begin(), indices.end(),
+            [&v](const size_t i, const size_t j) { return v[i] > v[j]; });
+
+  return indices;
+}
+
+
+float
+compute_iou(
+  const BoxCornerEncoding& lhs, const BoxCornerEncoding& rhs)
+{
+  float lhs_area = (lhs.ymax - lhs.ymin) * (lhs.xmax - lhs.xmin);
+  float rhs_area = (rhs.ymax - rhs.ymin) * (rhs.xmax - rhs.xmin);
+
+  if (lhs_area <= 0.0 || rhs_area <= 0.0) {
+    return 0;
+  }
+
+
+  float intersection_ymin = std::max(lhs.ymin, rhs.ymin);
+  float intersection_xmin = std::max(lhs.xmin, rhs.xmin);
+  float intersection_ymax = std::min(lhs.ymax, rhs.ymax);
+  float intersection_xmax = std::min(lhs.xmax, rhs.xmax);
+
+  float dh = std::max(intersection_ymax - intersection_ymin, 0.0f);
+  float dw = std::max(intersection_xmax - intersection_xmin, 0.0f);
+
+  float intersection = dh * dw;
+
+  float area_union = lhs_area + rhs_area - intersection;
+
+  return intersection / area_union;
+}
+
+std::vector<size_t>
+nms_across_class (
+  const PredictBoxes& boxes,
+  const PredictScores& scores,
+  float confidence_threshold=0.0,
+  float iou_threshold=0.4)
+{
+  std::vector<size_t> desc_ind = argsort_descend (scores);
+  std::vector<int> suppression;
+
+  int last_elem = -1;
+  for (int i = 0; i < desc_ind.size(); i++) {
+    size_t idx = desc_ind[i];
+    if (scores[idx] >= confidence_threshold) {
+      last_elem = i;
+
+      suppression.push_back (i);
+    }
+    else {
+      break;
+    }
+  }
+
+  std::vector<size_t> selected;
+  for (int i = 0; i <= last_elem; i++) {
+    if (suppression[i] < 0) {
+//      cout << "index " << i << " in score index array is already suppressed.\n";
+      // ++i;
+      continue;
+    }
+
+    size_t idx = desc_ind[i]; /* box index i */
+    const BoxCornerEncoding& cur_box = boxes[idx];
+
+    selected.emplace_back (idx);
+
+    int j = i + 1;
+    while (j <= last_elem)
+    {
+      size_t jdx = desc_ind[j]; /* box index j */
+      const BoxCornerEncoding& box_j = boxes[jdx];
+
+      float iou = compute_iou (cur_box, box_j);
+      assert (iou >= 0.0);
+      /*
+       * if iou is above threshold, then suppress box_j.
+       * otherwise box_j will be the next *new* box.
+       */
+      if (iou >= iou_threshold) {
+        suppression[j] *= -1;
+      }
+
+      ++j;
+    }
+
+    //i = j;
+  }
+
+  return selected;
 }
 
 int Detector::init(std::string model_path)
@@ -140,25 +214,25 @@ int Detector::init(std::string model_path)
 int Detector::preProcess(std::string image_path) {
     std::cout << "image_path: " << image_path << std::endl;
     /* PRE-PROCESS */
-    printf("0\n");
+    // printf("0\n");
     const cv::Mat mean(HEIGHT_SIZE, WIDTH_SIZE, CV_32FC3, meanValue);
-    printf("1\n");
+    // printf("1\n");
     const cv::Mat std(HEIGHT_SIZE, WIDTH_SIZE, CV_32FC3, stdValue);
-    printf("2\n");
+    // printf("2\n");
     cv::Mat raw_image    = cv::imread(image_path);
-    printf("3\n");
+    // printf("3\n");
     cv::Size raw_imageSize =  raw_image.size();
-    printf("4\n");
+    // printf("4\n");
     MNN_CHECK(raw_imageSize.height == inputImageHeight, "input image height error");
     MNN_CHECK(raw_imageSize.width == inputImageWidth, "input image width error");
-    printf("5\n");
+    // printf("5\n");
     cv::resize(raw_image, affinedImage, cv::Size(WIDTH_SIZE, HEIGHT_SIZE - PAD - PAD));
     cv::copyMakeBorder(affinedImage, affinedImage, PAD, PAD, 0, 0, cv::BORDER_CONSTANT, cv::Scalar(0.0f, 0.0f, 0.0f) );
-    printf("6\n");
+    // printf("6\n");
     cv::Mat image;
     affinedImage.convertTo(image, CV_32FC3);
     // cv::imwrite("pre-inference.jpg", affinedImage);
-    printf("7\n");
+    // printf("7\n");
     std::cout << image.size() << std::endl;
     std::cout << mean.size() << std::endl;
     std::cout << std.size() << std::endl;
@@ -168,10 +242,10 @@ int Detector::preProcess(std::string image_path) {
     // image.convertTo(image, CV_32FC3);
     image = (image / 255.0f - mean) / std;
     // cv::imwrite("/workspace/centernet/results/test_result/mnn-xxx.jpg", image);
-    printf("8\n");
+    // printf("8\n");
     auto tic = getTimeInUs();
     ::memcpy(nhwc_Tensor->host<float>(), image.data, nhwc_Tensor->size());
-    printf("9\n");
+    // printf("9\n");
     auto toc = getTimeInUs();
     printf("copy data costs: %8.3fms\n", (toc - tic) / 1000.0f);
     return 0;
@@ -179,12 +253,12 @@ int Detector::preProcess(std::string image_path) {
 
 
 int Detector::inference() {
-    printf("1\n");
+    // printf("1\n");
     auto inputTensor  = net->getSessionInput(session, nullptr);
-    printf("2\n");
+    // printf("2\n");
     std::cout << nhwc_Tensor->size() << std::endl;
     inputTensor->copyFromHostTensor(nhwc_Tensor);
-    printf("3\n");
+    // printf("3\n");
     net->runSession(session);
     return 0;
 }
@@ -208,6 +282,7 @@ int Detector::decode(std::vector<ObjInfo>& objs_tmp) {
     
     int idx = 0;
     int csum = 0;
+    std::vector<ObjInfo> rets;
     for (int c = 0; c < C; c++){
         for (int h = 0; h < H; h++) {
             for (int w = 0; w < W; w++) {
@@ -236,11 +311,29 @@ int Detector::decode(std::vector<ObjInfo>& objs_tmp) {
                     objbox.y2 = ((centerY + yReg) + height / 2.0f) * scale;
                     std::cout << "score: " << objbox.score << ", label: " << objbox.label << ", x1: " << objbox.x1 << ", x2: " << objbox.x2 << ", y1: " << objbox.y1 << ", y2: " << objbox.y2 << std::endl;
                     objbox.area=(objbox.x2 - objbox.x1) * (objbox.y2 - objbox.y1);
-                    objs_tmp.push_back(objbox);
+                    rets.push_back(objbox);
                 }
                 idx++;
             }
         }
+    }
+    // NMS across classes
+    PredictBoxes  pred_boxes;
+    PredictScores pred_scores;
+    for (int i =0; i < rets.size(); i++){
+        BoxCornerEncoding box = {};
+        box.ymin = rets[i].y1;
+        box.xmin = rets[i].x1;
+        box.ymax = rets[i].y2;
+        box.xmax = rets[i].x2;
+        pred_boxes.emplace_back (box);
+        pred_scores.emplace_back (rets[i].score);
+    }
+    const std::vector<size_t>& selected = nms_across_class (pred_boxes, pred_scores);
+    
+    for (size_t sel: selected)
+    {
+        objs_tmp.push_back(rets[sel]);
     }
     std::cout << "csum: " << csum << std::endl;
     return 0;

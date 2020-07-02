@@ -11,7 +11,7 @@
 
 #include "MNN_generated.h"
 #include "OnnxExtraManager.hpp"
-
+#include <iostream>
 namespace MNN {
 namespace Express {
 
@@ -34,6 +34,7 @@ public:
         auto inputs    = expr->inputs();
         auto input     = inputs[0];
         auto inputInfo = input->getInfo();
+        std::cout << "slice inputinfo:" << inputInfo << std::endl;
         if (nullptr == inputInfo) {
             MNN_ERROR("Onnx slice must use the same dimensition\n");
             return nullptr;

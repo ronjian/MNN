@@ -9,16 +9,16 @@ cd build
 build for x86
 ```shell
 cd build;
-cmake .. -DMNN_BUILD_DEMO=debug \
- -DCMAKE_BUILD_TYPE=debug \
- -DMNN_BUILD_TOOLS=off \
+cmake .. -DMNN_BUILD_DEMO=on \
+ -DCMAKE_BUILD_TYPE=release \
+ -DMNN_BUILD_TOOLS=on \
  -DMNN_BUILD_QUANTOOLS=off \
  -DMNN_BUILD_CONVERTER=on \
  -DMNN_SUPPORT_TFLITE_QUAN=off \
  -DMNN_DEBUG_MEMORY=off \
  -DMNN_DEBUG_TENSOR_SIZE=off \
- -DMNN_BUILD_BENCHMARK=on \
- -DMNN_OPENCL=on \
+ -DMNN_BUILD_BENCHMARK=off \
+ -DMNN_OPENCL=off \
  -DMNN_USE_SYSTEM_LIB=on \
  -DMNN_SEP_BUILD=false;
 make -j$(nproc)
@@ -283,8 +283,8 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 --debug true
 
 $MNN_HOME/build/MNNConvert -f ONNX \
---modelFile ctdet_mobilenetv3_magic-v3.onnx \
---MNNModel ctdet_mobilenetv3_magic-v3.mnn \
+--modelFile ctdet_mobilenetv3_magicv3.onnx \
+--MNNModel ctdet_mobilenetv3_magicv3.mnn \
 --bizCode MNN \
 --debug true
 
@@ -294,6 +294,11 @@ $MNN_HOME/build/MNNConvert -f ONNX \
 --bizCode MNN \
 --debug true > test.log
 
+$MNN_HOME/build/MNNConvert -f ONNX \
+--modelFile ctdet_mobilenetv3_magicv3.onnx \
+--MNNModel ctdet_mobilenetv3_magicv3.mnn \
+--bizCode MNN \
+--debug true
 
 $MNN_HOME/build/MNNConvert -f ONNX \
 --modelFile u2netp.onnx \

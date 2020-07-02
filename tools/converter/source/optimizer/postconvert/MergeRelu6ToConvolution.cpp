@@ -17,6 +17,7 @@ public:
     bool merge2Convolution(const MNN::OpT* inplaceOp, MNN::OpT* convolutionOp) const {
         // std::cout << inplaceOp->type << std::endl;
         if (inplaceOp->type == MNN::OpType_ReLU6) {
+            // std::cout << "skip merge relu6" << std::endl;
             convolutionOp->main.AsConvolution2D()->common->relu6 = true;
             return true;
         }

@@ -26,7 +26,7 @@ namespace patch
 int main(int argc, const char* argv[])
 {
     if (argc != 5) {
-        MNN_PRINT("Usage: ./NeiceTest.out /workspace/centernet/models/ctdet_185_61.mnn /workspace/centernet/data/baiguang/annotations/baiguang_val.json /workspace/centernet/data/baiguang/images/val/ /workspace/Object-Detection-Evaluation/baigguang-288x384.txt\n");
+        MNN_PRINT("Usage: ./NeiceTest.out /workspace/mlengine/mlengine/models/mnn/raw/ctdet_dl_280_66.mnn /workspace/centernet/data/baiguang/annotations/baiguang_val.json /workspace/centernet/data/baiguang/images/val/ /workspace/Object-Detection-Evaluation/baigguang-288x384.txt\n");
         return 0;
     }
     string modelPath = argv[1];
